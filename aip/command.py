@@ -20,6 +20,8 @@ from optparse import SUPPRESS_HELP, Option, OptionGroup
 from pip._internal.cli.status_codes import SUCCESS,ERROR
 from pip._internal.cli.base_command import Command
 from .build import buildCommand
+from .install import installCommand
+from .flash import flashCommand
 import sys
 
 ###########
@@ -43,6 +45,7 @@ general_group = {
         help_,
     ]
 }  # type: Dict[str, Any]
+
 
 
 class HelpCommand(Command):
@@ -81,6 +84,8 @@ class HelpCommand(Command):
 commands_order = [
     HelpCommand,
     buildCommand,
+    installCommand,
+    flashCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
