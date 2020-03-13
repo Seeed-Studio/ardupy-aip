@@ -36,22 +36,22 @@ grove_ui_gcc_ld_flag = " -L{0}/Seeeduino/tools/CMSIS/4.5.0/CMSIS/Lib/GCC -Os -Wl
                         {1} -o {2}/Ardupy --specs=nano.specs --specs=nosys.specs -mcpu=cortex-m4 -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all \
                         -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group -lm {0}/ArduPy/lib/libarm_cortexM4lf_math.a -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--end-group "
 
-grove_ui_ardupycore_headers =  "-I{0}/ardupycore/ArduPy/MicroPython \
-                                -I{0}/ardupycore/ArduPy/boards/grove_ui_m4 \
-                                -I{0}/ardupycore/ArduPy/MicroPython/lib/lwip/src/include \
-                                -I{0}/ardupycore/ArduPy/MicroPython/extmod/lwip-include  \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/cores/arduino \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/cores/arduino/Adafruit_TinyUSB_Core/tinyusb/src \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/cores/arduino/Adafruit_TinyUSB_Core \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/Wire \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/SPI \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/Adafruit_ZeroDMA \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/variants/grove_ui_wireless \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/core/arduino/USB \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/HID \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/USBHost/src \
-                                -I{0}/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/SAMD_AnalogCorrection/src \
-                                -I{0}/ardupycore/Seeeduino/tools/CMSIS/4.5.0/CMSIS/Include \
-                                -I{0}/ardupycore/Seeeduino/tools/CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL "
+grove_ui_ardupycore_headers =  ["/ardupycore/ArduPy/MicroPython",
+                                "/ardupycore/ArduPy/boards/grove_ui_m4",
+                                "/ardupycore/ArduPy/MicroPython/lib/lwip/src/include",
+                                "/ardupycore/ArduPy/MicroPython/extmod/lwip-include",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/cores/arduino",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/cores/arduino/Adafruit_TinyUSB_Core/tinyusb/src",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/cores/arduino/Adafruit_TinyUSB_Core",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/Wire",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/SPI",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/Adafruit_ZeroDMA",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/variants/grove_ui_wireless",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/core/arduino/USB",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/HID",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/USBHost/src",
+                                "/ardupycore/Seeeduino/hardware/samd/1.6.6/libraries/SAMD_AnalogCorrection/src",
+                                "/ardupycore/Seeeduino/tools/CMSIS/4.5.0/CMSIS/Include",
+                                "/ardupycore/Seeeduino/tools/CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL"]
 
 

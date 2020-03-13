@@ -1,5 +1,3 @@
-
-
 from pip._internal.cli.base_command import Command
 from pip._internal.cli.req_command import RequirementCommand
 from pip._internal.cli.status_codes import SUCCESS,ERROR
@@ -18,7 +16,8 @@ from .variable import *
 from tempfile import *
 import random
 import shutil
-
+import sys
+from pathlib import Path
 
 class buildCommand(RequirementCommand):
     """
@@ -51,6 +50,7 @@ class buildCommand(RequirementCommand):
 
         self.parser.insert_option_group(0, index_opts)
         self.srcfile = []
+        self.header = ""
 
     def endWith(self, s, *endstring):
         array = map(s.endswith, endstring)
@@ -73,7 +73,7 @@ class buildCommand(RequirementCommand):
         return wants_files
 
     def buildFarm(self, outputdir):
-        gcc = self.user_data_dir+gcc_48
+        gcc = str(Path(self.user_data_dir+gcc_48))
         gcc_def = grove_ui_gcc_def.replace("                    ", "")
         output_str = "   -o {0}   -c {1}"
         gcc_flag = grove_ui_gcc_flag
@@ -92,8 +92,8 @@ class buildCommand(RequirementCommand):
             os.system(cmd)
         
         gcc_ld_flag = grove_ui_gcc_ld_flag.format(self.user_data_dir+"/ardupycore"," ".join(output_o),outputdir).replace("                        ","")
+        print(gcc+gcc_ld_flag)
         os.system(gcc+gcc_ld_flag)
-        #print(" ".join(output_o))
 
     def downloadAll(self,session):
         link = Link("http://files.seeedstudio.com/ardupy/ardupy-core.zip")
@@ -111,7 +111,6 @@ class buildCommand(RequirementCommand):
                 downloader=downloader,
                 download_dir=None,
             )
-        import sys
         if not os.path.exists(ardupycoredir +"/Seeeduino/tools/arm-none-eabi-gcc") :
             if sys.platform == "linux":
                 link = Link("http://files.seeedstudio.com/arduino/tools/x86_64-pc-linux-gnu/gcc-arm-none-eabi-4.8.3-2014q1-linux64.tar.gz")
@@ -128,39 +127,59 @@ class buildCommand(RequirementCommand):
 
     def run(self, options, args):
         session = self.get_default_session(options)
-        deploydir = self.user_data_dir+"/deploy"
+        headerlist = []
+
+        #setup deploy dir
+        deploydir = Path(self.user_data_dir ,"deploy")
+        if not os.path.exists(deploydir) :
+            os.makedirs(deploydir)
+
+
+        #create build dir, This folder will be deleted after compilation
         builddir = mktemp()
         os.makedirs(builddir)
         
-        if not os.path.exists(deploydir) :
-            os.makedirs(deploydir)
-        
         self.downloadAll(session)
 
-        modules = os.listdir(self.user_data_dir +"/modules/") 
-        self.headers = grove_ui_ardupycore_headers.format(self.user_data_dir,self.user_data_dir+"/modules/").replace("                                ", "")
+        #Converts the header file to the absolute path of the current system
+        for h in grove_ui_ardupycore_headers:
+            headerlist.append(str(Path(self.user_data_dir+h)))
 
+        #setup ardupy modules dir
+        moduledir = Path(self.user_data_dir ,"modules")
+        if not os.path.exists(moduledir) :
+            os.makedirs(moduledir)
+        modules = os.listdir(moduledir)
         if modules :
             for m in modules :
+                #Gets the source files for all modules
                 for f in self.fileEndWith(os.path.join(self.user_data_dir+"/modules/",m),'.cpp','.c'):
-                    self.srcfile.append(f)
-                self.headers = self.headers + " -I" + self.user_data_dir+"/modules/"+ m + " "
+                    self.srcfile.append(str(Path(f)))
+                #Sets the root directory of the module to be where the header file is found
+                headerlist.append(str(Path(self.user_data_dir+"/modules/"+ m)))
 
+        #Convert the necessary files in ardupycore into the absolute path of the system.
         for  mp_file in mp_needful_file:
-            self.srcfile.append(self.user_data_dir+mp_file)
+            self.srcfile.append(str(Path(self.user_data_dir+mp_file)))
 
+        #Convert to the required format for GCC
+        self.headers ="-I" + " -I".join(headerlist)
 
-        print(self.srcfile)
-        print(grove_ui_gcc_def.replace("                    ", ""))
-        print(grove_ui_ardupycore_headers.format(self.user_data_dir).replace("                                ", ""))
+        #Compile all source files
         self.buildFarm(builddir)
-        objcopy_cmd = self.user_data_dir + gcc_48_objcopy + "-O binary " + builddir + "/Ardupy " + deploydir + "/Ardupy.bin"
+
+        #Convert ELF files to binary files
+        objcopy_cmd = str(Path(self.user_data_dir + gcc_48_objcopy))  + "-O binary " \
+                                    + str(Path(builddir + "/Ardupy"))+ " " \
+                                    + str(Path(str(deploydir) + "/Ardupy.bin"))                            
+        print(objcopy_cmd)
         os.system(objcopy_cmd)
-        os.system(self.user_data_dir + gcc_48_size +" -A "+ builddir + "/Ardupy ")
+
+        #Print size information
+        os.system(str(Path(self.user_data_dir + gcc_48_size)) +" -A "+ str(Path(builddir + "/Ardupy")))
+        
         #delete builddir
         shutil.rmtree(builddir)
         return SUCCESS
-
-
 
 
