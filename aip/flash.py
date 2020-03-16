@@ -14,6 +14,13 @@ from pip._internal.operations.prepare import (
     unpack_url,
 )
 import os
+import sys
+from pathlib import Path
+import platform
+from  .serialUtils import SerialUtils
+from .variable import *
+import time
+
 
 class flashCommand(RequirementCommand):
     """
@@ -45,25 +52,69 @@ class flashCommand(RequirementCommand):
         )
 
         self.parser.insert_option_group(0, index_opts)
+        self.serial = SerialUtils()
+        deploydir = Path(self.user_data_dir ,"deploy")
+        self.ardupybin = str(Path(deploydir, "Ardupy.bin"))
+
+
+    @property
+    def stty(self):
+        port,desc, hwid, isbootloader = self.serial.getAvailableBoard()
+        if port == "None":
+            print(port)
+            return "echo not support"
+        self.port = port
+        if os.name == "posix":
+            if platform.uname().system == "Darwin":
+                return "stty -f " + port + " %d"
+            return "stty -F " + port + " %d"
+        elif os.name == "nt":
+            return "MODE " + port + ":BAUD=%d PARITY=N DATA=8"
+        return "echo not support"
 
 
     def run(self, options, args):
-        print("sfsdf")
-        print(self.user_data_dir)
+        bossacdir = Path(self.user_data_dir+"/ardupycore/Seeeduino/tools/bossac")
+        if not os.path.exists(bossacdir) :
+            os.makedirs(bossacdir)
         session = self.get_default_session(options)
 
-        link = Link("http://files.seeedstudio.com/ardupy/ardupy-core.zip")
-        downloader = Downloader(session, progress_bar="on")
-        download_dir = "/tmp/ardupy"
-        os.mkdir(download_dir)
-        unpack_url(
-            link,
-            download_dir,
-            downloader=downloader,
-            download_dir=None,
-        )
-        actual = os.listdir(download_dir)
-        print(actual)
+        if sys.platform == "linux":
+            link = Link("http://files.seeedstudio.com/arduino/tools/i686-linux-gnu/bossac-1.9.1-seeeduino-linux.tar.gz")
+        if sys.platform == "win32":
+            link = Link("http://files.seeedstudio.com/arduino/tools/i686-mingw32/bossac-1.9.1-seeeduino-windows.tar.bz2")
+        if sys.platform == "darwin":
+            link = Link("http://files.seeedstudio.com/arduino/tools/i386-apple-darwin11/bossac-1.9.1-seeeduino-drawin.tar.gz")
+
+        bossac = Path(bossacdir,"bossac")
+        if not os.path.exists(bossac):
+            downloader = Downloader(session, progress_bar="on")
+            unpack_url(
+                link,
+                bossacdir,
+                downloader=downloader,
+                download_dir=None,
+            )
+        try_count = 0
+        do_bossac = True
+        while True:
+            if self.stty != "echo not support" :
+                os.system(self.stty % 1200)
+            #os.system(str(bossac)+ " --help")
+            port,desc, hwid, isbootloader = self.serial.getAvailableBoard()
+            time.sleep(1)
+            if isbootloader == True:
+                break
+            try_count = try_count + 1
+            if try_count == 5:
+                do_bossac =  False
+                break
+
+        if do_bossac == True:
+            os.system(((str(bossac) + grove_ui_flashParam) % (self.port,  self.ardupybin)))
+        else:
+            print("Sorry, the device you should have is not plugged in")
+
         return SUCCESS
 
 

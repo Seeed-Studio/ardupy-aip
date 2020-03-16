@@ -55,3 +55,4 @@ grove_ui_ardupycore_headers =  ["/ardupycore/ArduPy/MicroPython",
                                 "/ardupycore/Seeeduino/tools/CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL"]
 
 
+grove_ui_flashParam = " -i -d --port=%s -U -i --offset=0x4000 -w -v '%s' -R"
