@@ -75,6 +75,7 @@ class flashCommand(RequirementCommand):
 
     def run(self, options, args):
         bossacdir = Path(self.user_data_dir+"/ardupycore/Seeeduino/tools/bossac")
+        print(str(bossacdir))
         if not os.path.exists(bossacdir) :
             os.makedirs(bossacdir)
         session = self.get_default_session(options)
@@ -87,7 +88,7 @@ class flashCommand(RequirementCommand):
             link = Link("http://files.seeedstudio.com/arduino/tools/i386-apple-darwin11/bossac-1.9.1-seeeduino-drawin.tar.gz")
 
         bossac = Path(bossacdir,"bossac")
-        if not os.path.exists(bossac):
+        if not os.path.exists(bossacdir):
             downloader = Downloader(session, progress_bar="on")
             unpack_url(
                 link,
@@ -111,7 +112,8 @@ class flashCommand(RequirementCommand):
                 break
 
         if do_bossac == True:
-            os.system(((str(bossac) + grove_ui_flashParam) % (self.port,  self.ardupybin)))
+            print((str(bossac) + grove_ui_flashParam) % (self.port,  self.ardupybin))
+            os.system((str(bossac) + grove_ui_flashParam) % (self.port,  self.ardupybin))
         else:
             print("Sorry, the device you should have is not plugged in")
 
