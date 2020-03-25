@@ -99,8 +99,10 @@ class flashCommand(RequirementCommand):
         try_count = 0
         do_bossac = True
         while True:
-            if self.stty != "echo not support" :
-                os.system(self.stty % 1200)
+            stty = self.stty
+            print(stty)
+            if stty != "echo not support" :
+                os.system(stty % 1200)
             #os.system(str(bossac)+ " --help")
             port,desc, hwid, isbootloader = self.serial.getAvailableBoard()
             time.sleep(1)
