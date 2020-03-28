@@ -9,6 +9,7 @@ libarm_cortexM4lf_math_file = "/ardupycore/ArduPy/lib/libarm_cortexM4lf_math.a"
 
 
 gcc_48 = "/ardupycore/Seeeduino/tools/arm-none-eabi-gcc/bin/arm-none-eabi-gcc "
+cpp_48 = "/ardupycore/Seeeduino/tools/arm-none-eabi-gcc/bin/arm-none-eabi-g++ "
 gcc_48_objcopy = "/ardupycore/Seeeduino/tools/arm-none-eabi-gcc/bin/arm-none-eabi-objcopy "
 gcc_48_size = "/ardupycore/Seeeduino/tools/arm-none-eabi-gcc/bin/arm-none-eabi-size "
 
@@ -24,7 +25,9 @@ grove_ui_gcc_def =  " -DARDUINO=10810 \
                     -DUSB_CONFIG_POWER=100 -DUSB_MANUFACTURER=\"Seeed Studio\" -DUSB_PID=0x802D -DUSB_PRODUCT=\"Seeed Grove UI Wireles\" -DUSB_VID=0x2886 \
                     -DVARIANT_QSPI_BAUD_DEFAULT=50000000 -D__FPU_PRESENT -D__SAMD51P19A__ -D__SAMD51__ "
 
-grove_ui_gcc_flag = " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -std=gnu11"
+grove_ui_gcc_flag = " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -U_FORTIFY_SOURCE -Os"
+grove_ui_cpp_flag = " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu++11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -fno-rtti -fno-exceptions -fno-threadsafe-statics -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -std=gnu99 -U_FORTIFY_SOURCE -Os"
+
 
 #{0}: ardupycore path
 #{1}: output .o fils
@@ -36,7 +39,8 @@ grove_ui_gcc_ld_flag = " -L{0}/Seeeduino/tools/CMSIS/4.5.0/CMSIS/Lib/GCC -Os -Wl
                         {1} -o {2}/Ardupy --specs=nano.specs --specs=nosys.specs -mcpu=cortex-m4 -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all \
                         -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group -lm {0}/ArduPy/lib/libarm_cortexM4lf_math.a -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--end-group "
 
-ardupycore_headers =  ["/ardupycore/ArduPy/MicroPython",
+ardupycore_headers =  [ "/ardupycore/ArduPy",
+                        "/ardupycore/ArduPy/MicroPython",
                         "/ardupycore/ArduPy/MicroPython/lib/lwip/src/include",
                         "/ardupycore/ArduPy/MicroPython/extmod/lwip-include",
                         "/ardupycore/Seeeduino/hardware/samd/{0}/cores/arduino",
@@ -57,3 +61,20 @@ board_headers = "/ardupycore/ArduPy/boards/"
 
 
 grove_ui_flashParam = " -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R "
+
+#{0}: ardupy  path
+#{1}: ardupy board path
+
+micropython_CFLAGS = "-I. \
+        -I{0} \
+        -I{1} \
+        -I{0}/MicroPython  \
+        -Wall \
+        -Werror \
+        -Wpointer-arith \
+        -Wuninitialized \
+        -Wno-unused-label \
+        -std=gnu99 \
+        -U_FORTIFY_SOURCE \
+        -Os \
+        "
