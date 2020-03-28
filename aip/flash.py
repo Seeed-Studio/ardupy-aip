@@ -88,7 +88,7 @@ class flashCommand(RequirementCommand):
             link = Link("http://files.seeedstudio.com/arduino/tools/i386-apple-darwin11/bossac-1.9.1-seeeduino-drawin.tar.gz")
 
         bossac = Path(bossacdir,"bossac")
-        if not os.path.exists(bossacdir):
+        if not os.path.exists(bossac):
             downloader = Downloader(session, progress_bar="on")
             unpack_url(
                 link,
