@@ -149,7 +149,7 @@ const mp_obj_module_t mp_module_arduino = {
             initFile.write('{{ MP_ROM_QSTR(MP_QSTR_{0}),                         MP_ROM_PTR(&{1}) }},\n\t'.format(ss[:-5],ss))
         initFile.write(init_tail)
         initFile.close()
-        os.system("cat "+str(Path(outputdir,"__init__.c")))
+        # os.system("cat "+str(Path(outputdir,"__init__.c")))
         self.srcfile.append(str(Path(outputdir,"__init__.c")))
 
     def generatedQstrdefs(self,outputdir):
@@ -225,7 +225,7 @@ const mp_obj_module_t mp_module_arduino = {
             qstrdefs_generated_h.writelines('QDEF(MP_QSTR_%s, %s)\n' % (ident, qbytes))
         qstrdefs_generated_h.close()
 
-        os.system("cp "+ str(Path(genhdr,"qstrdefs.generated.h"))+" /tmp")
+        # os.system("cp "+ str(Path(genhdr,"qstrdefs.generated.h"))+" /tmp")
         self.headerlist.append(str(outputdir))                
 
         return genhdr

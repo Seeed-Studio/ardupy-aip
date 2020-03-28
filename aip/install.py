@@ -16,6 +16,7 @@ from pip._internal.operations.prepare import (
 
 import os
 from pygit2 import clone_repository
+from pygit2 import Repository
 
 class installCommand(RequirementCommand):
     """
@@ -54,4 +55,8 @@ class installCommand(RequirementCommand):
         for package in args:
             print(package)
             clone_repository("https://github.com/"+package, moduledir + package[package.find("/") : ])
+            repo = Repository(path=moduledir + package[package.find("/") : ])
+            repo.init_submodules()
+            repo.update_submodules()            
+        
 
