@@ -23,6 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import re
 import os
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
@@ -45,6 +46,19 @@ BOARD_IDS = \
         "bootloader": ("2886", "002E"),
     }]
 
+
+
+def windows_full_port_name(portname):
+    # Helper function to generate proper Windows COM port paths.  Apparently
+    # Windows requires COM ports above 9 to have a special path, where ports below
+    # 9 are just referred to by COM1, COM2, etc. (wacky!)  See this post for
+    # more info and where this code came from:
+    # http://eli.thegreenplace.net/2009/07/31/listing-all-serial-ports-on-windows-with-python/
+    m = re.match("^COM(\d+)$", portname)
+    if m and int(m.group(1)) < 10:
+        return portname
+    else:
+        return "\\\\.\\{0}".format(portname)
 
 class SerialUtils(object):
     def __init__(self):

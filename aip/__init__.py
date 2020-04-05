@@ -36,7 +36,7 @@ from pip._internal.exceptions import PipError
 from pip._internal.utils import deprecation
 from pip._internal.cli.autocompletion import autocomplete
 import importlib
-
+from .variable import *
 
 
 
@@ -65,7 +65,11 @@ def main(args=None):
         # setlocale can apparently crash if locale are uninitialized
         print("Ignoring error %s when setting locale", e)
 
-    module = importlib.import_module("aip."+cmd_name)
+    if cmd_name in shell_commands:
+        module = importlib.import_module("aip.shell")
+    else:
+        module = importlib.import_module("aip."+cmd_name)
+
     command_class = getattr(module, cmd_name+"Command")
     command = command_class(name=cmd_name, summary="...")
     return command.main(cmd_args)

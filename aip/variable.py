@@ -78,3 +78,14 @@ micropython_CFLAGS = "-I. \
         -U_FORTIFY_SOURCE \
         -Os \
         "
+shell_commands = [
+        'ls',
+        'get',
+        'put',
+        'rm',
+        'mkdir',
+        'rmdir',
+        'run',
+        'repl',
+        'reset',
+]

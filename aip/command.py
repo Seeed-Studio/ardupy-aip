@@ -46,6 +46,7 @@ from pip._internal.cli.base_command import Command
 from .build import buildCommand
 from .install import installCommand
 from .flash import flashCommand
+from .shell import lsCommand
 import sys
 
 ###########
@@ -110,6 +111,7 @@ commands_order = [
     buildCommand,
     installCommand,
     flashCommand,
+    lsCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
