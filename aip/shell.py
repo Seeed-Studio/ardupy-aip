@@ -39,6 +39,7 @@ from .pyboard import *
 from .serialUtils import windows_full_port_name
 import serial
 import subprocess
+import posixpath
 
 
 class _Getch:
@@ -131,7 +132,7 @@ class lsCommand(Command):
     def run(self, options, args):
 
         if options.port == "":
-            print("port is is necessary!")
+            print("port is necessary!")
             print("<usage>    aip ls -p, --port <port>")
             return ERROR
 
@@ -194,7 +195,7 @@ class getCommand(Command):
     name = 'get'
     usage = """
       %prog [options] <package> ..."""
-    summary = "get."
+    summary = "get"
 
     def __init__(self, *args, **kw):
         super(getCommand, self).__init__(*args, **kw)
@@ -205,21 +206,20 @@ class getCommand(Command):
             default="",
             help='The port of the ArduPy board.')
 
-
         self.parser.insert_option_group(0, self.cmd_opts)
 
     def run(self, options, args):
 
         if options.port == "":
-            print("port is is necessary!")
-            print("<usage>    aip ls -p, --port <port>  <remote_file>  <local_file>")
+            print("port is necessary!")
+            print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
             return ERROR
-        
+
         if args[0] == "":
-            print("port is is necessary!")
-            print("<usage>    aip ls -p, --port <port>  <remote_file>  <local_file>")
+            print("remote_file is necessary!")
+            print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
             return ERROR
-        
+
         remote_file_name = args[0]
         local_file_name = ""
         if len(args) >= 2:
@@ -238,5 +238,86 @@ class getCommand(Command):
             local_file.write(remote_file.decode("utf-8"))
         else:
             print(remote_file.decode("utf-8"))
+
+        return SUCCESS
+
+
+class putCommand(Command):
+    """
+    put
+    """
+    name = 'put'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "put"
+
+    def __init__(self, *args, **kw):
+        super(putCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        if options.port == "":
+            print("port is necessary!")
+            print("<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
+            return ERROR
+
+        if args[0] == "":
+            print("lccal file is necessary!")
+            print("<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
+            return ERROR
+
+        local_file_name = args[0]
+        remote_file_name = ""
+        if len(args) >= 2:
+            remote_file_name = args[1]
+        # Use the local filename if no remote filename is provided.
+
+        if remote_file_name == "":
+            remote_file_name = os.path.basename(os.path.abspath(local_file_name))
+
+        _board = Pyboard(options.port)
+
+        if platform.system() == "Windows":
+            port = windows_full_port_name(port)
+
+        if os.path.isdir(local_file_name):
+            # Directory copy, create the directory and walk all children to copy
+            # over the files.
+
+            board_files = Files(_board)
+
+            for parent, child_dirs, child_files in os.walk(local_file_name, followlinks=True):
+                # Create board filesystem absolute path to parent directory.
+                remote_parent = posixpath.normpath(
+                    posixpath.join(remote_file_name, os.path.relpath(
+                        parent, local_file_name))
+                )
+                try:
+                    # Create remote parent directory.
+                    board_files.mkdir(remote_parent)
+                except DirectoryExistsError:
+                    # Ignore errors for directories that already exist.
+                    pass
+                # Loop through all the files and put them on the board too.
+                for filename in child_files:
+                    with open(os.path.join(parent, filename), "rb") as infile:
+                        remote_filename = posixpath.join(
+                            remote_parent, filename)
+                        board_files.put(remote_filename, infile.read())
+
+        else:
+            # File copy, open the file and copy its contents to the board.
+            # Put the file on the board.
+            with open(local_file_name, "rb") as infile:
+                board_files = Files(_board)
+                board_files.put(remote_file_name, infile.read())
 
         return SUCCESS

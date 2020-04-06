@@ -49,6 +49,7 @@ from .flash import flashCommand
 from .shell import lsCommand
 from .shell import replCommand
 from .shell import getCommand
+from .shell import putCommand
 import sys
 
 ###########
@@ -116,6 +117,7 @@ commands_order = [
     lsCommand,
     replCommand,
     getCommand,
+    putCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
