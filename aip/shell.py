@@ -315,13 +315,13 @@ class mkdirCommand(Command):
         if options.port == "":
             print("port is necessary!")
             print(
-                "<usage>    aip put -p, --port <port> -e --exists <exists> <directory>")
+                "<usage>    aip mkdir -p, --port <port> -e --exists <exists> <directory>")
             return ERROR
 
         if len(args) == 0:
             print("directory is necessary!")
             print(
-                "<usage>    aip put -p, --port <port> -e --exists <exists> <directory>")
+                "<usage>    aip mkdir -p, --port <port> -e --exists <exists> <directory>")
             return ERROR
 
         directory = args[0]
@@ -332,6 +332,7 @@ class mkdirCommand(Command):
         board_files.mkdir(directory, exists_okay=options.exists)
 
         return SUCCESS
+
 
 class rmCommand(Command):
     """
@@ -351,7 +352,6 @@ class rmCommand(Command):
             default="",
             help='The port of the ArduPy board.')
 
-
         self.parser.insert_option_group(0, self.cmd_opts)
 
     def run(self, options, args):
@@ -359,13 +359,13 @@ class rmCommand(Command):
         if options.port == "":
             print("port is necessary!")
             print(
-                "<usage>    aip put -p, --port <port> -e  <remote_file>")
+                "<usage>    aip rm -p, --port <port> <remote_file>")
             return ERROR
 
         if len(args) == 0:
             print("remote file is necessary!")
             print(
-                "<usage>    aip put -p, --port <port> -e  <remote_file>")
+                "<usage>    aip rm -p, --port <port> <remote_file>")
             return ERROR
 
         remote_file_name = args[0]
@@ -374,5 +374,56 @@ class rmCommand(Command):
         board_file = Files(_board)
 
         board_file.rm(remote_file_name)
-        
+
+        return SUCCESS
+
+
+class rmdirCommand(Command):
+    """
+    rmdir
+    """
+    name = 'rmdir'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "rmdir"
+
+    def __init__(self, *args, **kw):
+        super(rmdirCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+
+        self.cmd_opts.add_option(
+            '-m', '--missing',
+            dest='missing_okay',
+            action='store_true',
+            default=True,
+            help='Ignore if the directory does not exist.')
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        if options.port == "":
+            print("port is necessary!")
+            print(
+                "<usage>    aip rmdir -p, --port <port> -m --missing <directory>")
+            return ERROR
+
+        if len(args) == 0:
+            print("directory is necessary!")
+            print(
+                "<usage>    aip rmdir -p, --port <port> -m --missing <directory>")
+            return ERROR
+
+        directory = args[0]
+
+        _board = Pyboard(options.port)
+        board_file = Files(_board)
+
+        board_file.rmdir(directory, missing_okay=options.missing_okay)
+
         return SUCCESS
