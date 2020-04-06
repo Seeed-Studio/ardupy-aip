@@ -42,47 +42,6 @@ import subprocess
 import posixpath
 
 
-class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
-
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
-
-    def __call__(self): return self.impl()
-
-
-class _GetchUnix:
-    def __init__(self):
-        import tty
-        import sys
-
-    def __call__(self):
-        import sys
-        import tty
-        import termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-
-
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
-
-
 class lsCommand(Command):
     """
     List the contents of the specified directory (or root if none is
@@ -281,7 +240,8 @@ class putCommand(Command):
         # Use the local filename if no remote filename is provided.
 
         if remote_file_name == "":
-            remote_file_name = os.path.basename(os.path.abspath(local_file_name))
+            remote_file_name = os.path.basename(
+                os.path.abspath(local_file_name))
 
         _board = Pyboard(options.port)
 
@@ -340,7 +300,7 @@ class mkdirCommand(Command):
             action='store',
             default="",
             help='The port of the ArduPy board.')
-        
+
         self.cmd_opts.add_option(
             '-e', '--exists',
             dest='exists',
@@ -354,14 +314,16 @@ class mkdirCommand(Command):
 
         if options.port == "":
             print("port is necessary!")
-            print("<usage>    aip put -p, --port <port> -e, --exists <exists> <directory>")
+            print(
+                "<usage>    aip put -p, --port <port> -e --exists <exists> <directory>")
             return ERROR
 
         if len(args) == 0:
             print("directory is necessary!")
-            print("<usage>    aip put -p, --port <port> -e, --exists <exists> <directory>")
+            print(
+                "<usage>    aip put -p, --port <port> -e --exists <exists> <directory>")
             return ERROR
-        
+
         directory = args[0]
 
         _board = Pyboard(options.port)
@@ -369,4 +331,48 @@ class mkdirCommand(Command):
 
         board_files.mkdir(directory, exists_okay=options.exists)
 
+        return SUCCESS
+
+class rmCommand(Command):
+    """
+    rm
+    """
+    name = 'rm'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "rm"
+
+    def __init__(self, *args, **kw):
+        super(rmCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        if options.port == "":
+            print("port is necessary!")
+            print(
+                "<usage>    aip put -p, --port <port> -e  <remote_file>")
+            return ERROR
+
+        if len(args) == 0:
+            print("remote file is necessary!")
+            print(
+                "<usage>    aip put -p, --port <port> -e  <remote_file>")
+            return ERROR
+
+        remote_file_name = args[0]
+
+        _board = Pyboard(options.port)
+        board_file = Files(_board)
+
+        board_file.rm(remote_file_name)
+        
         return SUCCESS

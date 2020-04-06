@@ -206,6 +206,7 @@ class Files(object):
         try:
             out = self._pyboard.exec_(textwrap.dedent(command))
         except PyboardError as ex:
+            print("asdads")
             # Check if this is an OSError #17, i.e. directory already exists.
             if ex.args[2].decode("utf-8").find("OSError: [Errno 17] EEXIST") != -1:
                 if not exists_okay:
