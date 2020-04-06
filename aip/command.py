@@ -47,6 +47,8 @@ from .build import buildCommand
 from .install import installCommand
 from .flash import flashCommand
 from .shell import lsCommand
+from .shell import replCommand
+from .shell import getCommand
 import sys
 
 ###########
@@ -112,6 +114,8 @@ commands_order = [
     installCommand,
     flashCommand,
     lsCommand,
+    replCommand,
+    getCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}

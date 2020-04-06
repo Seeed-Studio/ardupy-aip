@@ -37,6 +37,50 @@ import time
 from .files import *
 from .pyboard import *
 from .serialUtils import windows_full_port_name
+import serial
+import subprocess
+
+
+class _Getch:
+    """Gets a single character from standard input.  Does not echo to the
+screen."""
+
+    def __init__(self):
+        try:
+            self.impl = _GetchWindows()
+        except ImportError:
+            self.impl = _GetchUnix()
+
+    def __call__(self): return self.impl()
+
+
+class _GetchUnix:
+    def __init__(self):
+        import tty
+        import sys
+
+    def __call__(self):
+        import sys
+        import tty
+        import termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+
+class _GetchWindows:
+    def __init__(self):
+        import msvcrt
+
+    def __call__(self):
+        import msvcrt
+        return msvcrt.getch()
+
 
 class lsCommand(Command):
     """
@@ -51,7 +95,6 @@ class lsCommand(Command):
     usage = """
       %prog [options] <package> ..."""
     summary = "ls."
-    ignore_require_venv = True
 
     def __init__(self, *args, **kw):
         super(lsCommand, self).__init__(*args, **kw)
@@ -75,7 +118,7 @@ class lsCommand(Command):
             action='store_true',
             default=True,
             help='long_format')
-        
+
         self.cmd_opts.add_option(
             '-r', '--recursive',
             dest='recursive',
@@ -86,7 +129,7 @@ class lsCommand(Command):
         self.parser.insert_option_group(0, self.cmd_opts)
 
     def run(self, options, args):
-        
+
         if options.port == "":
             print("port is is necessary!")
             print("<usage>    aip ls -p, --port <port>")
@@ -94,11 +137,106 @@ class lsCommand(Command):
 
         _board = Pyboard(options.port)
         board_files = Files(_board)
-    
+
         if platform.system() == "Windows":
             port = windows_full_port_name(port)
 
         for f in board_files.ls(options.directory, options.long_format, options.recursive):
             print(f)
-            
+
+        return SUCCESS
+
+
+class replCommand(Command):
+    """
+    repl
+    """
+    name = 'repl'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "repl."
+
+    def __init__(self, *args, **kw):
+        super(replCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        print(
+            '\033[31mSorry, this function is not implemented yet. Please look forward to the next version.')
+
+        # if options.port == "":
+        #     print("port is is necessary!")
+        #     print("<usage>    aip repl -p, --port <port>")
+        #     return ERROR
+
+        # port = serial.Serial(port=options.port, baudrate=115200, bytesize=8, parity='E', stopbits=1, timeout=2)
+
+        # while True:
+        #     getch = _Getch()
+        #     a = getch()
+        #     port.write(bytes(a,encoding='utf-8'))
+
+        return SUCCESS
+
+
+class getCommand(Command):
+    """
+    get
+    """
+    name = 'get'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "get."
+
+    def __init__(self, *args, **kw):
+        super(getCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        if options.port == "":
+            print("port is is necessary!")
+            print("<usage>    aip ls -p, --port <port>  <remote_file>  <local_file>")
+            return ERROR
+        
+        if args[0] == "":
+            print("port is is necessary!")
+            print("<usage>    aip ls -p, --port <port>  <remote_file>  <local_file>")
+            return ERROR
+        
+        remote_file_name = args[0]
+        local_file_name = ""
+        if len(args) >= 2:
+            local_file_name = args[1]
+
+        _board = Pyboard(options.port)
+        board_files = Files(_board)
+
+        if platform.system() == "Windows":
+            port = windows_full_port_name(port)
+
+        remote_file = board_files.get(remote_file_name)
+
+        if local_file_name != "":
+            local_file = open(local_file_name, "w")
+            local_file.write(remote_file.decode("utf-8"))
+        else:
+            print(remote_file.decode("utf-8"))
+
         return SUCCESS
