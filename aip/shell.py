@@ -427,3 +427,60 @@ class rmdirCommand(Command):
         board_file.rmdir(directory, missing_okay=options.missing_okay)
 
         return SUCCESS
+
+
+class runCommand(Command):
+    """
+    run
+    """
+    name = 'run'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "run"
+
+    def __init__(self, *args, **kw):
+        super(runCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+
+        self.cmd_opts.add_option(
+            '-n', '--no-output',
+            dest='no_output',
+            action='store_true',
+            default=False,
+            help='Run the code without waiting for it to finish and print output.  Use this when running code with main loops that never return.')
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        if options.port == "":
+            print("port is necessary!")
+            print(
+                "<usage>    aip run -p, --port <port> <local_file>")
+            return ERROR
+
+        if len(args) == 0:
+            print("local file is necessary!")
+            print(
+                "<usage>    aip run -p, --port <port> <local_file>")
+            return ERROR
+
+        local_file_name = args[0]
+
+        _board = Pyboard(options.port)
+        board_file = Files(_board)
+        
+        try:
+            output = board_file.run(local_file_name, not options.no_output, not options.no_output)
+            if output is not None:
+                print(output.decode("utf-8"), end="")
+        except IOError:
+            print("Failed to find or read input file: {0}".format(local_file), err=True)
+        
+
+        return SUCCESS

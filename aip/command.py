@@ -53,6 +53,7 @@ from .shell import putCommand
 from .shell import mkdirCommand
 from .shell import rmCommand
 from .shell import rmdirCommand
+from .shell import runCommand
 import sys
 
 ###########
@@ -124,6 +125,7 @@ commands_order = [
     mkdirCommand,
     rmCommand,
     rmdirCommand,
+    runCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
