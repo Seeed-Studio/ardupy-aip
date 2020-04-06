@@ -269,8 +269,8 @@ class putCommand(Command):
             print("<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
             return ERROR
 
-        if args[0] == "":
-            print("lccal file is necessary!")
+        if len(args) == 0:
+            print("local file is necessary!")
             print("<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
             return ERROR
 
@@ -319,5 +319,54 @@ class putCommand(Command):
             with open(local_file_name, "rb") as infile:
                 board_files = Files(_board)
                 board_files.put(remote_file_name, infile.read())
+
+        return SUCCESS
+
+
+class mkdirCommand(Command):
+    """
+    mkdir
+    """
+    name = 'mkdir'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "mkdir"
+
+    def __init__(self, *args, **kw):
+        super(mkdirCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+        
+        self.cmd_opts.add_option(
+            '-e', '--exists',
+            dest='exists',
+            action='store_true',
+            default=True,
+            help='Ignore if the directory already exists')
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        if options.port == "":
+            print("port is necessary!")
+            print("<usage>    aip put -p, --port <port> -e, --exists <exists> <directory>")
+            return ERROR
+
+        if len(args) == 0:
+            print("directory is necessary!")
+            print("<usage>    aip put -p, --port <port> -e, --exists <exists> <directory>")
+            return ERROR
+        
+        directory = args[0]
+
+        _board = Pyboard(options.port)
+        board_files = Files(_board)
+
+        board_files.mkdir(directory, exists_okay=options.exists)
 
         return SUCCESS

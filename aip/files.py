@@ -157,9 +157,9 @@ class Files(object):
                     size = stat[6]
 
                     if stat[0] == 16384:
-                        type = 'file'
-                    elif stat[0] == 32768:
                         type = 'dir'
+                    elif stat[0] == 32768:
+                        type = 'file'
                     else:
                         type = ''     
 

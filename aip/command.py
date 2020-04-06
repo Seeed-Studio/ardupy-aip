@@ -50,6 +50,7 @@ from .shell import lsCommand
 from .shell import replCommand
 from .shell import getCommand
 from .shell import putCommand
+from .shell import mkdirCommand
 import sys
 
 ###########
@@ -118,6 +119,7 @@ commands_order = [
     replCommand,
     getCommand,
     putCommand,
+    mkdirCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
