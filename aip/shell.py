@@ -76,7 +76,7 @@ class lsCommand(Command):
             '-l', '--long_format',
             dest='long_format',
             action='store_true',
-            default=True,
+            default=False,
             help='long_format')
 
         self.cmd_opts.add_option(
@@ -95,11 +95,14 @@ class lsCommand(Command):
             print("<usage>    aip ls -p, --port <port>")
             return ERROR
 
+        if platform.system() == "Windows":
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+
         _board = Pyboard(options.port)
         board_files = Files(_board)
 
-        if platform.system() == "Windows":
-            port = windows_full_port_name(port)
 
         for f in board_files.ls(options.directory, options.long_format, options.recursive):
             print(f)
@@ -184,11 +187,14 @@ class getCommand(Command):
         if len(args) >= 2:
             local_file_name = args[1]
 
+        
+        if platform.system() == "Windows":
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+            
         _board = Pyboard(options.port)
         board_files = Files(_board)
-
-        if platform.system() == "Windows":
-            port = windows_full_port_name(port)
 
         remote_file = board_files.get(remote_file_name)
 
@@ -243,10 +249,14 @@ class putCommand(Command):
             remote_file_name = os.path.basename(
                 os.path.abspath(local_file_name))
 
-        _board = Pyboard(options.port)
-
+        
         if platform.system() == "Windows":
-            port = windows_full_port_name(port)
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+            
+        _board = Pyboard(options.port)
+        board_files = Files(_board)
 
         if os.path.isdir(local_file_name):
             # Directory copy, create the directory and walk all children to copy
@@ -326,6 +336,12 @@ class mkdirCommand(Command):
 
         directory = args[0]
 
+        
+        if platform.system() == "Windows":
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+            
         _board = Pyboard(options.port)
         board_files = Files(_board)
 
@@ -370,8 +386,14 @@ class rmCommand(Command):
 
         remote_file_name = args[0]
 
+        
+        if platform.system() == "Windows":
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+            
         _board = Pyboard(options.port)
-        board_file = Files(_board)
+        board_files = Files(_board)
 
         board_file.rm(remote_file_name)
 
@@ -421,8 +443,14 @@ class rmdirCommand(Command):
 
         directory = args[0]
 
+        
+        if platform.system() == "Windows":
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+            
         _board = Pyboard(options.port)
-        board_file = Files(_board)
+        board_files = Files(_board)
 
         board_file.rmdir(directory, missing_okay=options.missing_okay)
 
@@ -472,11 +500,17 @@ class runCommand(Command):
 
         local_file_name = args[0]
 
+        
+        if platform.system() == "Windows":
+            port = windows_full_port_name(options.port)
+        else:
+            port = options.port
+            
         _board = Pyboard(options.port)
-        board_file = Files(_board)
+        board_files = Files(_board)
         
         try:
-            output = board_file.run(local_file_name, not options.no_output, not options.no_output)
+            output = board_files.run(local_file_name, not options.no_output, not options.no_output)
             if output is not None:
                 print(output.decode("utf-8"), end="")
         except IOError:
