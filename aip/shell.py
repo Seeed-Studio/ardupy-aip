@@ -395,7 +395,7 @@ class rmCommand(Command):
         _board = Pyboard(options.port)
         board_files = Files(_board)
 
-        board_file.rm(remote_file_name)
+        board_files.rm(remote_file_name)
 
         return SUCCESS
 
@@ -452,7 +452,7 @@ class rmdirCommand(Command):
         _board = Pyboard(options.port)
         board_files = Files(_board)
 
-        board_file.rmdir(directory, missing_okay=options.missing_okay)
+        board_files.rmdir(directory, missing_okay=options.missing_okay)
 
         return SUCCESS
 
