@@ -55,6 +55,27 @@ class SerialUtils(object):
     
     def getAllPortInfo(self):
         return comports(include_links=False)
+
+    
+    def listAvailableBoard(self):
+        list = []
+        for info in self.getAllPortInfo():
+            port, desc, hwid = info 
+            ii = hwid.find("VID:PID")
+            #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
+            #print(hwid)
+            if ii != -1:
+                for b in  BOARD_IDS:
+                    (vid, pid) = b["appcation"]
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        list.append(port,desc, hwid, False)
+                    (vid, pid) = b["bootloader"] 
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        list.append(port,desc, hwid, True)
+
+        return list
     
     def getAvailableBoard(self):
         for info in self.getAllPortInfo():
@@ -74,16 +95,38 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return []
+        return ("None","None","None",False)
     
-    def listAvailableBoard(self):
+    def listBoard(self):
         list = [];
         for b in  BOARD_IDS:
            list.append(b["name"])
         return list
     
-    def getDesignatedBoard(self, designated):
+    def listDesignatedBoard(self, designated):
+        list = []
+        for info in self.getAllPortInfo():
+            port, desc, hwid = info 
+            ii = hwid.find("VID:PID")
+            #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
+            #print(hwid)
+            if ii != -1:
+                for b in  BOARD_IDS:
+                    if b["name"] != designated:
+                        continue
+                    (vid, pid) = b["appcation"]
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        list.append(port,desc, hwid, False)
+                    (vid, pid) = b["bootloader"] 
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        list.append(port,desc, hwid, True)
 
+        return list
+    
+    def getDesignatedBoard(self, designated):
+        
         for info in self.getAllPortInfo():
             port, desc, hwid = info 
             ii = hwid.find("VID:PID")
@@ -102,8 +145,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return []
-
+        return ("None","None","None",False)
         
     def isBootloaderStatus(self):
 

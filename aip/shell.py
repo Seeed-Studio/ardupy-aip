@@ -67,13 +67,6 @@ class lsCommand(Command):
             help='The port of the ArduPy board.')
 
         self.cmd_opts.add_option(
-            '-d', '--directory',
-            dest='directory',
-            action='store',
-            default="/",
-            help='The directory of the ArduPy board.')
-
-        self.cmd_opts.add_option(
             '-l', '--long_format',
             dest='long_format',
             action='store_true',
@@ -91,21 +84,26 @@ class lsCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
-            print("<usage>    aip ls -p, --port <port>")
-            return ERROR
-
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
+            print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
+            return ERROR
 
-        _board = Pyboard(options.port)
+        _board = Pyboard(port)
+        
         board_files = Files(_board)
 
-
-        for f in board_files.ls(options.directory, options.long_format, options.recursive):
+        directory = "/"
+        if len(args) > 0:
+            directory = args[0]
+        
+        for f in board_files.ls(directory, options.long_format, options.recursive):
             print(f)
 
         return SUCCESS
@@ -173,12 +171,20 @@ class getCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
             return ERROR
 
-        if args[0] == "":
+        _board = Pyboard(port)
+
+        if len(args) == 0:
             print("remote_file is necessary!")
             print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
             return ERROR
@@ -188,13 +194,6 @@ class getCommand(Command):
         if len(args) >= 2:
             local_file_name = args[1]
 
-        
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
-        else:
-            port = options.port
-            
-        _board = Pyboard(options.port)
         board_files = Files(_board)
 
         remote_file = board_files.get(remote_file_name)
@@ -230,10 +229,19 @@ class putCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
-            print("<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
+            print(
+                "<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
             return ERROR
+        
+        _board = Pyboard(port)
 
         if len(args) == 0:
             print("local file is necessary!")
@@ -250,13 +258,6 @@ class putCommand(Command):
             remote_file_name = os.path.basename(
                 os.path.abspath(local_file_name))
 
-        
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
-        else:
-            port = options.port
-            
-        _board = Pyboard(options.port)
         board_files = Files(_board)
 
         if os.path.isdir(local_file_name):
@@ -323,11 +324,19 @@ class mkdirCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip mkdir -p, --port <port> -e --exists <exists> <directory>")
             return ERROR
+        
+        _board = Pyboard(port)
 
         if len(args) == 0:
             print("directory is necessary!")
@@ -337,13 +346,6 @@ class mkdirCommand(Command):
 
         directory = args[0]
 
-        
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
-        else:
-            port = options.port
-            
-        _board = Pyboard(options.port)
         board_files = Files(_board)
 
         board_files.mkdir(directory, exists_okay=options.exists)
@@ -373,11 +375,19 @@ class rmCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip rm -p, --port <port> <remote_file>")
             return ERROR
+        
+        _board = Pyboard(port)
 
         if len(args) == 0:
             print("remote file is necessary!")
@@ -387,13 +397,6 @@ class rmCommand(Command):
 
         remote_file_name = args[0]
 
-        
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
-        else:
-            port = options.port
-            
-        _board = Pyboard(options.port)
         board_files = Files(_board)
 
         board_files.rm(remote_file_name)
@@ -430,11 +433,19 @@ class rmdirCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip rmdir -p, --port <port> -m --missing <directory>")
             return ERROR
+        
+        _board = Pyboard(port)
 
         if len(args) == 0:
             print("directory is necessary!")
@@ -444,13 +455,8 @@ class rmdirCommand(Command):
 
         directory = args[0]
 
-        
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
-        else:
-            port = options.port
             
-        _board = Pyboard(options.port)
+        _board = Pyboard(port)
         board_files = Files(_board)
 
         board_files.rmdir(directory, missing_okay=options.missing_okay)
@@ -487,11 +493,18 @@ class runCommand(Command):
 
     def run(self, options, args):
 
+        ser = SerialUtils()
         if options.port == "":
-            print("port is necessary!")
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip run -p, --port <port> <local_file>")
             return ERROR
+
 
         if len(args) == 0:
             print("local file is necessary!")
@@ -501,13 +514,7 @@ class runCommand(Command):
 
         local_file_name = args[0]
 
-        
-        if platform.system() == "Windows":
-            port = windows_full_port_name(options.port)
-        else:
-            port = options.port
-            
-        _board = Pyboard(options.port)
+        _board = Pyboard(port)
         board_files = Files(_board)
         
         try:
@@ -554,7 +561,7 @@ class scanCommand(Command):
         ser = SerialUtils()
 
         if options.list == True:
-            print (ser.listAvailableBoard())
+            print (ser.listBoard())
             return SUCCESS
 
         if options.board == "":
