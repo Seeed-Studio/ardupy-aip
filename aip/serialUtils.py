@@ -33,19 +33,7 @@ elif os.name == 'posix':
 else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 
-# List of supported board USB IDs.  Each board is a tuple of unique USB vendor
-# ID, USB product ID.
-BOARD_IDS = \
-    [{
-        "name": "wio terminal",
-        "appcation": ("2886", "802D"),
-        "bootloader": ("2886", "002D"),
-    },{
-        "name": "Seeeduino XIAO",
-        "appcation": ("2886", "802E"),
-        "bootloader": ("2886", "002E"),
-    }]
-
+from .variable import *
 
 
 def windows_full_port_name(portname):
@@ -73,19 +61,49 @@ class SerialUtils(object):
             port, desc, hwid = info 
             ii = hwid.find("VID:PID")
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
-            print(hwid)
+            #print(hwid)
             if ii != -1:
                 for b in  BOARD_IDS:
+                    
                     (vid, pid) = b["appcation"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
-                        print(port,desc, hwid)
+                        #print(port,desc, hwid)
                         return port,desc, hwid, False
                     (vid, pid) = b["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
-                        print(port,desc, hwid)
+                        #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return ("None","None","None",False)
+        return []
+    
+    def listAvailableBoard(self):
+        list = [];
+        for b in  BOARD_IDS:
+           list.append(b["name"])
+        return list
+    
+    def getDesignatedBoard(self, designated):
+
+        for info in self.getAllPortInfo():
+            port, desc, hwid = info 
+            ii = hwid.find("VID:PID")
+            #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
+            #print(hwid)
+            if ii != -1:
+                for b in  BOARD_IDS:
+                    if b["name"] != designated:
+                        continue
+                    (vid, pid) = b["appcation"]
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        return port,desc, hwid, False
+                    (vid, pid) = b["bootloader"] 
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        return port,desc, hwid, True
+
+        return []
+
         
     def isBootloaderStatus(self):
 
@@ -97,3 +115,4 @@ if __name__ == '__main__':
         port, desc, hwid = info
         print("port: {}, desc: {}, hwid: {}".format(port, desc, hwid))
     print(ser.getAvailableBoard())
+    print(ser.getDesignatedBoard("wio terminal"))

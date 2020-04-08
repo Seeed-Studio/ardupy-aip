@@ -88,4 +88,18 @@ shell_commands = [
         'run',
         'repl',
         'reset',
+        'scan',
 ]
+
+# List of supported board USB IDs.  Each board is a tuple of unique USB vendor
+# ID, USB product ID.
+BOARD_IDS = \
+    [{
+        "name": "wio terminal",
+        "appcation": ("2886", "802D"),
+        "bootloader": ("2886", "002D"),
+    },{
+        "name": "Seeeduino XIAO",
+        "appcation": ("2886", "802E"),
+        "bootloader": ("2886", "002E"),
+    }]

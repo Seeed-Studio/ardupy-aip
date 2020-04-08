@@ -37,6 +37,7 @@ import time
 from .files import *
 from .pyboard import *
 from .serialUtils import windows_full_port_name
+from .serialUtils import SerialUtils
 import serial
 import subprocess
 import posixpath
@@ -516,5 +517,49 @@ class runCommand(Command):
         except IOError:
             print("Failed to find or read input file: {0}".format(local_file), err=True)
         
+
+        return SUCCESS
+
+
+class scanCommand(Command):
+    """
+    scan
+    """
+    name = 'scan'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "scan"
+
+    def __init__(self, *args, **kw):
+        super(scanCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-b', '--board',
+            dest='board',
+            action='store',
+            default="",
+            help='Scan the designated ardupy board.')
+        
+        self.cmd_opts.add_option(
+            '-l', '--list',
+            dest='list',
+            action='store_true',
+            default=False,
+            help='List all available boards')
+
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+
+        ser = SerialUtils()
+
+        if options.list == True:
+            print (ser.listAvailableBoard())
+            return SUCCESS
+
+        if options.board == "":
+            print(ser.getAvailableBoard())
+        else:
+            print(ser.getDesignatedBoard(options.board))
 
         return SUCCESS
