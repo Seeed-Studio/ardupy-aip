@@ -2,3 +2,4 @@ pygit2
 pyusb
 pyserial
 demjson
+pip

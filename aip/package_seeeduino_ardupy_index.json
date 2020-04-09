@@ -1,0 +1,27 @@
+[{
+        "name": "wio terminal",
+        "appcation": [
+            "2886",
+            "802D"
+        ],
+        "bootloader": [
+            "2886",
+            "002D"
+        ],
+        "version": "2020-4-9",
+        "firmware_url": "http://files.seeedstudio.com/ardupy/firmware/wio_terminal/ardupy_laster.bin"
+    },
+    {
+        "name": "Seeeduino XIAO",
+        "appcation": [
+            "2886",
+            "802E"
+        ],
+        "bootloader": [
+            "2886",
+            "002E"
+        ],
+        "version": "2020-4-9",
+        "firmware_url": "http://files.seeedstudio.com/ardupy/firmware/xiao/ardupy_laster.bin"
+    }
+]

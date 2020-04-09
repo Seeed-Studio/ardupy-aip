@@ -1,4 +1,5 @@
 
+import json
 
 mp_needful_file = ["/ardupycore/ArduPy/MicroPython/py/objmodule.c", \
                     "/ardupycore/ArduPy/MicroPython/py/parse.c", \
@@ -94,13 +95,7 @@ shell_commands = [
 
 # List of supported board USB IDs.  Each board is a tuple of unique USB vendor
 # ID, USB product ID.
-BOARD_IDS = \
-    [{
-        "name": "wio terminal",
-        "appcation": ("2886", "802D"),
-        "bootloader": ("2886", "002D"),
-    },{
-        "name": "Seeeduino XIAO",
-        "appcation": ("2886", "802E"),
-        "bootloader": ("2886", "002E"),
-    }]
+with open("G:/Seeed/desktop/ardupy-aip/aip/package_seeeduino_ardupy_index.json",'r') as load_f:
+    BOARD_IDS = json.load(load_f)
+    
+

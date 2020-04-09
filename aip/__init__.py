@@ -28,6 +28,7 @@
 import sys
 import os
 import locale
+import json
 
 from .command import commands_dict,parse_command
 from pip._internal.exceptions import PipError
@@ -41,6 +42,7 @@ from .variable import *
 
 
 def main(args=None):
+    
      # type: (Optional[List[str]]) -> int
     if args is None:
         args = sys.argv[1:]

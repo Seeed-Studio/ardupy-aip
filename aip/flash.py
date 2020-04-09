@@ -36,6 +36,7 @@ from pip._internal.operations.prepare import (
     _copy_source_tree,
     _download_http_url,
     unpack_url,
+    unpack_file_url
 )
 import os
 import sys
@@ -61,11 +62,12 @@ class flashCommand(RequirementCommand):
     def __init__(self, *args, **kw):
         super(flashCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
-            '-a', '--ailes',
-            dest='files',
-            action='store_true',
-            default=False,
-            help='Show the full list of installed files for each package.')
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+        
 
         self.parser.insert_option_group(0, self.cmd_opts)
         self.user_data_dir = appdirs.user_data_dir(appname = "aip")
@@ -77,28 +79,35 @@ class flashCommand(RequirementCommand):
 
         self.parser.insert_option_group(0, index_opts)
         self.serial = SerialUtils()
-        deploydir = Path(self.user_data_dir ,"deploy")
-        self.ardupybin = str(Path(deploydir, "Ardupy.bin"))
 
 
     @property
     def stty(self):
-        port,desc, hwid, isbootloader = self.serial.getAvailableBoard()
-        if port == "None":
-            print(port)
+
+        if self.port == "":
+            port,desc, hwid, isbootloader = self.serial.getAvailableBoard()
+            self.port = port;
+      
+        if self.port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
+            print(
+                "<usage>    aip run -p, --port <port> <local_file>")
             return "echo not support"
-        self.port = port
+
         if os.name == "posix":
             if platform.uname().system == "Darwin":
-                return "stty -f " + port + " %d"
-            return "stty -F " + port + " %d"
+                return "stty -f " + self.port + " %d"
+            return "stty -F " + self.port + " %d"
         elif os.name == "nt":
-            return "MODE " + port + ":BAUD=%d PARITY=N DATA=8"
+            return "MODE " + self.port + ":BAUD=%d PARITY=N DATA=8"
+
         return "echo not support"
 
 
     def run(self, options, args):
+        self.port = options.port
         bossacdir = Path(self.user_data_dir+"/ardupycore/Seeeduino/tools/bossac")
+       
         print(str(bossacdir))
         if not os.path.exists(bossacdir) :
             os.makedirs(bossacdir)
@@ -126,6 +135,7 @@ class flashCommand(RequirementCommand):
                 downloader=downloader,
                 download_dir=None,
             )
+
         try_count = 0
         do_bossac = True
         while True:
@@ -134,7 +144,8 @@ class flashCommand(RequirementCommand):
             if stty != "echo not support" :
                 os.system(stty % 1200)
             #os.system(str(bossac)+ " --help")
-            port,desc, hwid, isbootloader = self.serial.getAvailableBoard()
+            port,desc, hwid, isbootloader = self.serial.getBootloaderBoard()
+            print(port)
             time.sleep(1)
             if isbootloader == True:
                 break
@@ -142,12 +153,27 @@ class flashCommand(RequirementCommand):
             if try_count == 5:
                 do_bossac =  False
                 break
+        
+        name, version, url = self.serial.getBoardByPort(port)
+        firmwaredir = Path(self.user_data_dir+"/deploy/firmware/"+name.replace(' ', '_'))
+        if not os.path.exists(firmwaredir) :
+            os.makedirs(firmwaredir)
+        ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
+       
+        if not os.path.exists(ardupybin):
+            downloader = Downloader(session, progress_bar="on")
+            _download_http_url(
+                link=Link(url),
+                downloader=downloader,
+                temp_dir=firmwaredir,
+                hashes=None
+            )
 
         if do_bossac == True:
-            print((str(bossac) + grove_ui_flashParam) % (self.port,  self.ardupybin))
-            os.system((str(bossac) + grove_ui_flashParam) % (self.port,  self.ardupybin))
+            print((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
+            os.system((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
         else:
-            print("Sorry, the device you should have is not plugged in")
+            print("\033[93mSorry, the device you should have is not plugged in.[0m")
 
         return SUCCESS
 
