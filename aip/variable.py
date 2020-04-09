@@ -89,6 +89,7 @@ shell_commands = [
         'repl',
         'reset',
         'scan',
+        'bv',
 ]
 
 # List of supported board USB IDs.  Each board is a tuple of unique USB vendor

@@ -218,6 +218,43 @@ class Pyboard:
     def exit_raw_repl(self):
         self.serial.write(b'\r\x02') # ctrl-B: enter friendly REPL
 
+    
+    def board_halt(self):
+        for i in range(0, 3):
+            try:
+                com = self.serial;
+                com.timeout = 1
+                com.writeTimeout = 1
+                buf = bytearray()
+                com.write(b"\x03")
+                time.sleep(0.05)
+                com.write(b"\x02")
+                time.sleep(0.05)
+                lines = com.readlines()
+                for line in lines:
+                    buf = buf + line
+                return buf
+            except serial.serialutil.SerialException as e:
+                print(e)
+            except serial.serialutil.SerialTimeoutException as e:
+                print("Serial Write/Read Timeout", e)
+        return None
+    
+    def get_version(self):
+
+        buf = self.board_halt()
+        ver = ""
+        try:
+            tmp = str(buf, "utf-8")
+            #print(tmp)
+            r = tmp.index("; Ardupy with seeed")
+            ver = tmp[r - 10 : r]
+        except Exception as ex:
+            ver = "It's not an ardupy device!"
+
+        return ver
+
+
     def follow(self, timeout, data_consumer=None):
         # wait for normal output
         data = self.read_until(1, b'\x04', timeout=timeout, data_consumer=data_consumer)

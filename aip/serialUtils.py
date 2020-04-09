@@ -69,11 +69,11 @@ class SerialUtils(object):
                     (vid, pid) = b["appcation"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
-                        list.append(port,desc, hwid, False)
+                        list.append({"port":port, "desc":desc, "hwid":hwid, "state":False})
                     (vid, pid) = b["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
-                        list.append(port,desc, hwid, True)
+                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
 
         return list
     
@@ -117,11 +117,11 @@ class SerialUtils(object):
                     (vid, pid) = b["appcation"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
-                        list.append(port,desc, hwid, False)
+                        list.append({"port":port, "desc":desc, "hwid":hwid, "state":False})
                     (vid, pid) = b["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
-                        list.append(port,desc, hwid, True)
+                        list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
 
         return list
     

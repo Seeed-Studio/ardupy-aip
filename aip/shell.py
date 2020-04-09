@@ -96,7 +96,7 @@ class lsCommand(Command):
             return ERROR
 
         _board = Pyboard(port)
-        
+
         board_files = Files(_board)
 
         directory = "/"
@@ -565,8 +565,52 @@ class scanCommand(Command):
             return SUCCESS
 
         if options.board == "":
-            print(ser.getAvailableBoard())
+            print(ser.listAvailableBoard())
         else:
-            print(ser.getDesignatedBoard(options.board))
+            print(ser.listDesignatedBoard(options.board))
 
         return SUCCESS
+
+
+
+class bvCommand(Command):
+    """
+    bv
+    """
+    name = 'bv'
+    usage = """
+      %prog [options] <package> ..."""
+    summary = "bv"
+
+    def __init__(self, *args, **kw):
+        super(bvCommand, self).__init__(*args, **kw)
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
+        
+
+
+        self.parser.insert_option_group(0, self.cmd_opts)
+
+    def run(self, options, args):
+        ser = SerialUtils()
+        if options.port == "":
+            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+        else:
+            port = options.port
+        
+        if port == "None":
+            print("\033[93mplease plug in a ArduPy Board!\033[0m")
+            print(
+                "<usage>    aip run -p, --port <port> <local_file>")
+            return ERROR
+        
+        _board = Pyboard(port)
+
+        print(_board.get_version());
+
+        return SUCCESS
+

@@ -55,6 +55,7 @@ from .shell import rmCommand
 from .shell import rmdirCommand
 from .shell import runCommand
 from .shell import scanCommand
+from .shell import bvCommand
 import sys
 
 ###########
@@ -128,6 +129,7 @@ commands_order = [
     rmdirCommand,
     runCommand,
     scanCommand,
+    bvCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
