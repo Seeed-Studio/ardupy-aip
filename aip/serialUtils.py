@@ -25,6 +25,8 @@
 
 import re
 import os
+import json
+import demjson
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
@@ -75,7 +77,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                          list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
 
-        return list
+        return demjson.encode(list)
     
     def getAvailableBoard(self):
         for info in self.getAllPortInfo():
@@ -101,7 +103,7 @@ class SerialUtils(object):
         list = [];
         for b in  BOARD_IDS:
            list.append(b["name"])
-        return list
+        return demjson.encode(list)
     
     def listDesignatedBoard(self, designated):
         list = []
@@ -123,7 +125,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
 
-        return list
+        return demjson.encode(list)
     
     def getDesignatedBoard(self, designated):
         

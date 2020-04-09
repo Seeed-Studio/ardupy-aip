@@ -13,7 +13,8 @@ Ardupy library package manager
 
 requirements = [
     'pygit2',
-    'pyusb'
+    'pyusb',
+    'demjson'
 ]
 
 setup_requirements = [

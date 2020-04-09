@@ -251,7 +251,7 @@ class Pyboard:
             ver = tmp[r - 10 : r]
         except Exception as ex:
             ver = "It's not an ardupy device!"
-
+        
         return ver
 
 
