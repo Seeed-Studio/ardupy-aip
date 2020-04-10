@@ -96,6 +96,8 @@ shell_commands = [
 # List of supported board USB IDs.  Each board is a tuple of unique USB vendor
 # ID, USB product ID.
 with open("G:/Seeed/desktop/ardupy-aip/aip/package_seeeduino_ardupy_index.json",'r') as load_f:
-    BOARD_IDS = json.load(load_f)
+    json_dict = json.load(load_f);
+    BOARD_IDS = json_dict['board']
+
     
 

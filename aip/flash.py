@@ -126,7 +126,7 @@ class flashCommand(RequirementCommand):
             bossac = Path(bossacdir,"bossac.exe")
         else:
             bossac = Path(bossacdir,"bossac")
-            
+        
         if not os.path.exists(bossac):
             downloader = Downloader(session, progress_bar="on")
             unpack_url(
