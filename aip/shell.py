@@ -198,8 +198,9 @@ class getCommand(Command):
         remote_file = board_files.get(remote_file_name)
 
         if local_file_name != "":
-            local_file = open(local_file_name, "w")
-            local_file.write(remote_file.decode("utf-8"))
+            local_file = open(local_file_name, mode="wb", newline=None)
+            local_file.write(remote_file)
+            local_file.close()
         else:
             print(remote_file.decode("utf-8"))
 
