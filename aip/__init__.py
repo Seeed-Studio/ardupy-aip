@@ -34,14 +34,13 @@ import urllib.request
 import shutil
 
 
-from aip.command import commands_dict, parse_command
 from pip._internal.exceptions import PipError
 
 
 from pip._internal.utils import deprecation
 from pip._internal.cli.autocompletion import autocomplete
 import importlib
-from aip.variable import *
+#from aip.variable import *
 from pip._internal.utils import appdirs
 
 
@@ -57,7 +56,7 @@ def main(args=None):
         os.makedirs(user_data_dir)
     today = date.today()
     user_data_dir_files = os.listdir(user_data_dir)
-    current_package_seeeduino_ardupy = ""
+    current_package_seeeduino_ardupy = "xxxxx"
     is_update = True
     for files in user_data_dir_files:
         if files[0:30] == "package_seeeduino_ardupy_index":
@@ -74,6 +73,9 @@ def main(args=None):
         print("update latest package_seeeduino_ardupy_index.json ...")
         urllib.request.urlretrieve('https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json',
                                    Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json"))
+
+    from aip.command import commands_dict, parse_command
+    from aip.variable import shell_commands
 
     # Configure our deprecation warnings to be sent through loggers
     deprecation.install_warning_logger()

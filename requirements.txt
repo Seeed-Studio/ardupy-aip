@@ -3,3 +3,4 @@ pyusb
 pyserial
 demjson
 pip
+demjson
