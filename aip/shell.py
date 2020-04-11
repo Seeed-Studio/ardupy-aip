@@ -26,7 +26,6 @@
 from pip._internal.cli.base_command import Command
 from pip._internal.cli.req_command import RequirementCommand
 from pip._internal.cli.status_codes import SUCCESS, ERROR
-from pip._internal.utils import appdirs
 from pip._internal.cli import cmdoptions
 
 import os
@@ -86,10 +85,10 @@ class lsCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
@@ -102,7 +101,7 @@ class lsCommand(Command):
         directory = "/"
         if len(args) > 0:
             directory = args[0]
-        
+
         for f in board_files.ls(directory, options.long_format, options.recursive):
             print(f)
 
@@ -173,10 +172,10 @@ class getCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
@@ -231,16 +230,16 @@ class putCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
             return ERROR
-        
+
         _board = Pyboard(port)
 
         if len(args) == 0:
@@ -326,16 +325,16 @@ class mkdirCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip mkdir -p, --port <port> -e --exists <exists> <directory>")
             return ERROR
-        
+
         _board = Pyboard(port)
 
         if len(args) == 0:
@@ -377,16 +376,16 @@ class rmCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip rm -p, --port <port> <remote_file>")
             return ERROR
-        
+
         _board = Pyboard(port)
 
         if len(args) == 0:
@@ -435,16 +434,16 @@ class rmdirCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip rmdir -p, --port <port> -m --missing <directory>")
             return ERROR
-        
+
         _board = Pyboard(port)
 
         if len(args) == 0:
@@ -455,7 +454,6 @@ class rmdirCommand(Command):
 
         directory = args[0]
 
-            
         _board = Pyboard(port)
         board_files = Files(_board)
 
@@ -495,16 +493,15 @@ class runCommand(Command):
 
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip run -p, --port <port> <local_file>")
             return ERROR
-
 
         if len(args) == 0:
             print("local file is necessary!")
@@ -516,14 +513,15 @@ class runCommand(Command):
 
         _board = Pyboard(port)
         board_files = Files(_board)
-        
+
         try:
-            output = board_files.run(local_file_name, not options.no_output, not options.no_output)
+            output = board_files.run(
+                local_file_name, not options.no_output, not options.no_output)
             if output is not None:
                 print(output.decode("utf-8"), end="")
         except IOError:
-            print("Failed to find or read input file: {0}".format(local_file), err=True)
-        
+            print("Failed to find or read input file: {0}".format(
+                local_file), err=True)
 
         return SUCCESS
 
@@ -545,14 +543,13 @@ class scanCommand(Command):
             action='store',
             default="",
             help='Scan the designated ardupy board.')
-        
+
         self.cmd_opts.add_option(
             '-l', '--list',
             dest='list',
             action='store_true',
             default=False,
             help='List all available boards')
-
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -561,7 +558,7 @@ class scanCommand(Command):
         ser = SerialUtils()
 
         if options.list == True:
-            print (ser.listBoard())
+            print(ser.listBoard())
             return SUCCESS
 
         if options.board == "":
@@ -570,7 +567,6 @@ class scanCommand(Command):
             print(ser.listDesignatedBoard(options.board))
 
         return SUCCESS
-
 
 
 class bvCommand(Command):
@@ -590,27 +586,24 @@ class bvCommand(Command):
             action='store',
             default="",
             help='The port of the ArduPy board.')
-        
-
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
     def run(self, options, args):
         ser = SerialUtils()
         if options.port == "":
-            port,desc, hwid, isbootloader = ser.getAvailableBoard()
+            port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
-        
+
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
             print(
                 "<usage>    aip run -p, --port <port> <local_file>")
             return ERROR
-        
+
         _board = Pyboard(port)
 
-        print(_board.get_version());
+        print(_board.get_version())
 
         return SUCCESS
-
