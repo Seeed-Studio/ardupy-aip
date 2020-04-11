@@ -33,10 +33,10 @@ import sys
 from pathlib import Path
 import platform
 import time
-from .files import *
-from .pyboard import *
-from .serialUtils import windows_full_port_name
-from .serialUtils import SerialUtils
+from aip.files import *
+from aip.pyboard import *
+from aip.serialUtils import windows_full_port_name
+from aip.serialUtils import SerialUtils
 import serial
 import subprocess
 import posixpath

@@ -40,7 +40,7 @@ from pip._internal.operations.prepare import (
 import os
 from pygit2 import clone_repository
 from pygit2 import Repository
-from .variable import *
+from aip.variable import *
 import shutil
 from pathlib import Path
 

@@ -36,7 +36,7 @@ from pip._internal.operations.prepare import (
     unpack_url,
 )
 import os
-from .variable import *
+from aip.variable import *
 from tempfile import *
 import random
 import shutil

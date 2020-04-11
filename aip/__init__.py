@@ -34,14 +34,14 @@ import urllib.request
 import shutil
 
 
-from .command import commands_dict, parse_command
+from aip.command import commands_dict, parse_command
 from pip._internal.exceptions import PipError
 
 
 from pip._internal.utils import deprecation
 from pip._internal.cli.autocompletion import autocomplete
 import importlib
-from .variable import *
+from aip.variable import *
 from pip._internal.utils import appdirs
 
 

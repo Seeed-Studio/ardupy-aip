@@ -42,8 +42,8 @@ import os
 import sys
 from pathlib import Path
 import platform
-from .serialUtils import SerialUtils
-from .variable import *
+from aip.serialUtils import SerialUtils
+from aip.variable import *
 import time
 
 

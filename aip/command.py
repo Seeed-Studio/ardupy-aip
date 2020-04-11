@@ -1,23 +1,23 @@
 
 # The MIT License (MIT)
-# 
+#
 # Author: Baozhu Zuo (zuobaozhu@gmail.com)
-# 
+#
 # Copyright (C) 2020  Seeed Technology Co.,Ltd.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,7 +29,7 @@ from pip._internal.cli.parser import (
 )
 from functools import partial
 
-from pip._internal.commands import  get_similar_commands
+from pip._internal.commands import get_similar_commands
 
 from pip._internal.cli.status_codes import SUCCESS
 from pip._internal.cli import cmdoptions
@@ -37,25 +37,24 @@ from pip._internal.exceptions import PipError
 from pip._internal.exceptions import CommandError
 
 
-
 from pip._internal.utils.misc import get_pip_version, get_prog
 from optparse import SUPPRESS_HELP, Option, OptionGroup
 
-from pip._internal.cli.status_codes import SUCCESS,ERROR
+from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli.base_command import Command
-from .build import buildCommand
-from .install import installCommand
-from .flash import flashCommand
-from .shell import lsCommand
-from .shell import replCommand
-from .shell import getCommand
-from .shell import putCommand
-from .shell import mkdirCommand
-from .shell import rmCommand
-from .shell import rmdirCommand
-from .shell import runCommand
-from .shell import scanCommand
-from .shell import bvCommand
+from aip.build import buildCommand
+from aip.install import installCommand
+from aip.flash import flashCommand
+from aip.shell import lsCommand
+from aip.shell import replCommand
+from aip.shell import getCommand
+from aip.shell import putCommand
+from aip.shell import mkdirCommand
+from aip.shell import rmCommand
+from aip.shell import rmdirCommand
+from aip.shell import runCommand
+from aip.shell import scanCommand
+from aip.shell import bvCommand
 import sys
 
 ###########
@@ -71,15 +70,12 @@ help_ = partial(
 )  # type: Callable[..., Option]
 
 
-
-
 general_group = {
     'name': 'General Options',
     'options': [
         help_,
     ]
 }  # type: Dict[str, Any]
-
 
 
 class HelpCommand(Command):
@@ -91,7 +87,7 @@ class HelpCommand(Command):
     ignore_require_venv = True
 
     def run(self, options, args):
-        from pip._internal.commands import  get_similar_commands
+        from pip._internal.commands import get_similar_commands
 
         try:
             # 'pip help' with no args is handled by pip.__init__.parseopt()
@@ -113,8 +109,6 @@ class HelpCommand(Command):
         return SUCCESS
 
 
-
-
 commands_order = [
     HelpCommand,
     buildCommand,
@@ -133,8 +127,6 @@ commands_order = [
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
-
-
 
 
 def create_main_parser():
@@ -170,7 +162,6 @@ def create_main_parser():
     parser.description = '\n'.join(description)
 
     return parser
-
 
 
 def parse_command(args):
@@ -214,4 +205,3 @@ def parse_command(args):
     cmd_args.remove(cmd_name)
 
     return cmd_name, cmd_args
-
