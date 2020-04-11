@@ -15,7 +15,8 @@ requirements = [
     'pygit2',
     'pyusb',
     'demjson',
-    'pip'
+    'pip',
+    'pyserial'
 ]
 
 setup_requirements = [

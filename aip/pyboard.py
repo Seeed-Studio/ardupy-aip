@@ -234,10 +234,9 @@ class Pyboard:
                 for line in lines:
                     buf = buf + line
                 return buf
-            except serial.serialutil.SerialException as e:
-                print(e)
-            except serial.serialutil.SerialTimeoutException as e:
-                print("Serial Write/Read Timeout", e)
+            except: 
+                continue
+
         return None
     
     def get_version(self):
