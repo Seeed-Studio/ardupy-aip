@@ -118,7 +118,7 @@ class flashCommand(RequirementCommand):
                 "http://files.seeedstudio.com/arduino/tools/i686-mingw32/bossac-1.9.1-seeeduino-windows.tar.bz2")
         if sys.platform == "darwin":
             link = Link(
-                "http://files.seeedstudio.com/arduino/tools/i386-apple-darwin11/bossac-1.9.1-seeeduino-drawin.tar.gz")
+                "http://files.seeedstudio.com/arduino/tools/i386-apple-darwin11/bossac-1.9.1-arduino1-osx.tar.gz")
 
         bossac = ""
 
