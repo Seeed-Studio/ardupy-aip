@@ -29,6 +29,7 @@ from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
+import shutil
 
 from pip._internal.operations.prepare import (
     _copy_source_tree,
@@ -59,12 +60,13 @@ class buildCommand(RequirementCommand):
 
     def __init__(self, *args, **kw):
         super(buildCommand, self).__init__(*args, **kw)
+
         self.cmd_opts.add_option(
-            '-a', '--ailes',
-            dest='files',
-            action='store_true',
-            default=False,
-            help='Show the full list of installed files for each package.')
+            '-b', '--board',
+            dest='board',
+            action='store',
+            default="",
+            help='The name of the ArduPy board.')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -268,12 +270,13 @@ const mp_obj_module_t mp_module_arduino = {
         link = Link("http://files.seeedstudio.com/ardupy/ardupy-core.zip")
         downloader = Downloader(session, progress_bar="on")
         ardupycoredir = user_data_dir+"/ardupycore"
-        if not os.path.exists(ardupycoredir + "/Seeeduino"):
+        if not os.path.exists(ardupycoredir + "/ArduPy"):
             try:
                 os.makedirs(ardupycoredir)
             except OSError as error:
                 print("Directory '%s was exists' " % ardupycoredir)
-
+                print(error)
+                
             unpack_url(
                 link,
                 ardupycoredir,
@@ -297,9 +300,25 @@ const mp_obj_module_t mp_module_arduino = {
                 download_dir=None,
             )
 
-    def run(self, options, args):
-        session = self.get_default_session(options)
+    def clean(self):
+        ardupycoredir = user_data_dir+"/ardupycore/ArduPy"
+        if os.path.exists(ardupycoredir):
+            try:
+                shutil.rmtree(ardupycoredir)
+            except OSError as error:
+                print("Directory '%s remove failed' " % ardupycoredir)
+                print(error)
 
+    def run(self, options, args):
+        if 'clean' in args:
+            self.clean()
+            return SUCCESS
+
+        if options.board != "":
+            self.board = options.board
+
+        session = self.get_default_session(options)
+        
         # setup deploy dir
         deploydir = Path(user_data_dir, "deploy")
         if not os.path.exists(deploydir):

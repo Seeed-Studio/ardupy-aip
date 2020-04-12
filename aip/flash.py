@@ -101,6 +101,7 @@ class flashCommand(RequirementCommand):
         return "echo not support"
 
     def run(self, options, args):
+
         self.port = options.port
         bossacdir = Path(user_data_dir +
                          "/ardupycore/Seeeduino/tools/bossac")
