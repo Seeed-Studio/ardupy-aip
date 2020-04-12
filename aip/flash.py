@@ -155,20 +155,26 @@ class flashCommand(RequirementCommand):
                 break
 
         name, version, url = self.serial.getBoardByPort(port)
-        firmwaredir = Path(user_data_dir +
-                           "/deploy/firmware/"+name.replace(' ', '_'))
-        if not os.path.exists(firmwaredir):
-            os.makedirs(firmwaredir)
-        ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
 
-        if not os.path.exists(ardupybin):
-            downloader = Downloader(session, progress_bar="on")
-            _download_http_url(
-                link=Link(url),
-                downloader=downloader,
-                temp_dir=firmwaredir,
-                hashes=None
-            )
+        ardupybin = ""
+        if len(args) > 0:
+            ardupybin = args[0]
+            if not os.path.exists(ardupybin):
+                print('\033[31m The path of firmware didn\'t exists!\033[0m')
+                return ERROR
+        else:
+           
+            firmwaredir = Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_'))
+            if not os.path.exists(firmwaredir):
+                os.makedirs(firmwaredir)
+            ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
+            if not os.path.exists(ardupybin):
+                downloader = Downloader(session, progress_bar="on")
+                _download_http_url(
+                    link=Link(url),
+                    downloader=downloader,
+                    temp_dir=firmwaredir,
+                    hashes=None)
 
         if do_bossac == True:
             print((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
