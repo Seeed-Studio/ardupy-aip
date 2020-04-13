@@ -4,3 +4,4 @@ pyserial
 demjson
 pip
 demjson
+rshell
