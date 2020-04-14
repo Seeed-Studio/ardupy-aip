@@ -2,6 +2,8 @@
 from datetime import date
 from pip._internal.utils import appdirs
 from pathlib import Path
+import os
+import stat
 
 import json
 
@@ -96,6 +98,10 @@ shell_commands = [
     'scan',
     'bv',
 ]
+
+def readonly_handler(func, path, execinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 # List of supported board USB IDs.  Each board is a tuple of unique USB vendor
 # ID, USB product ID.

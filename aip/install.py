@@ -38,6 +38,7 @@ from pip._internal.operations.prepare import (
 )
 
 import os
+import stat
 from pygit2 import clone_repository
 from pygit2 import Repository
 from aip.variable import *
@@ -60,11 +61,19 @@ class installCommand(RequirementCommand):
     def __init__(self, *args, **kw):
         super(installCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
-            '-r', '--ailes',
+            '-r', '--remove',
             dest='uninstall',
             action='store_true',
             default=False,
             help='Install the aip package')
+        
+        self.cmd_opts.add_option(
+            '-l', '--list',
+            dest='list',
+            action='store_true',
+            default=False,
+            help='list all the aip package')
+
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -80,7 +89,12 @@ class installCommand(RequirementCommand):
         if options.uninstall == True:
             for package in args:
                 print(package[package.find("/")+1:])
-                shutil.rmtree(Path(moduledir, package[package.find("/")+1:]))
+                if os.path.exists(Path(moduledir, package[package.find("/") + 1:])):
+                    shutil.rmtree(Path(moduledir, package[package.find("/") + 1:]), onerror=readonly_handler)
+                else:
+                    print("\033[93m" + package[package.find("/")+1:] + " not exists\033[0m")
+        elif options.list == True:
+            print(os.listdir(moduledir))
         else:
             for package in args:
                 print(package)
