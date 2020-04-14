@@ -103,8 +103,8 @@ class flashCommand(RequirementCommand):
     def run(self, options, args):
 
         self.port = options.port
-        bossacdir = Path(user_data_dir +
-                         "/ardupycore/Seeeduino/tools/bossac")
+        bossacdir = str(Path(user_data_dir +
+                         "/ardupycore/Seeeduino/tools/bossac"))
 
         print(str(bossacdir))
         if not os.path.exists(bossacdir):
@@ -124,9 +124,9 @@ class flashCommand(RequirementCommand):
         bossac = ""
 
         if platform.system() == "Windows":
-            bossac = Path(bossacdir, "bossac.exe")
+            bossac = str(Path(bossacdir, "bossac.exe"))
         else:
-            bossac = Path(bossacdir, "bossac")
+            bossac = str(Path(bossacdir, "bossac"))
 
         if not os.path.exists(bossac):
             downloader = Downloader(session, progress_bar="on")
@@ -165,7 +165,7 @@ class flashCommand(RequirementCommand):
                 return ERROR
         else:
            
-            firmwaredir = Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_'))
+            firmwaredir = str(Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_')))
             if not os.path.exists(firmwaredir):
                 os.makedirs(firmwaredir)
             ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))

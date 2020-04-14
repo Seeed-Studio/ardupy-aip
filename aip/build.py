@@ -166,7 +166,7 @@ const mp_obj_module_t mp_module_arduino = {
                     mp_obj_type_string.append(''.join([line for line in f.readlines(
                     ) if re.match(r'const mp_obj_type_t ', line)])[20: -5])
 
-        initFile = open(Path(outputdir, "__init__.c"), "w")
+        initFile = open(str(Path(outputdir, "__init__.c")), "w")
         initFile.write(init_header)
         for ss in mp_obj_type_string:
             initFile.write("extern const mp_obj_type_t  {};\n\t".format(ss))
@@ -187,7 +187,7 @@ const mp_obj_module_t mp_module_arduino = {
         import makeqstrdata
         import makeqstrdefs
         # import makeversionhdr
-        genhdr = Path(outputdir+"/genhdr")
+        genhdr = str(Path(outputdir+"/genhdr"))
         os.makedirs(genhdr)
         extern_mp_src = []
 
@@ -238,7 +238,7 @@ const mp_obj_module_t mp_module_arduino = {
         qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_data_dir+"/ardupycore/Seeeduino/tools/genhdr/qstrdefs.preprocessed.h")),
                                                          str(Path(genhdr, "qstrdefs.collected.h"))])
 
-        qstrdefs_generated_h = open(Path(genhdr, "qstrdefs.generated.h"), "w")
+        qstrdefs_generated_h = open(str(Path(genhdr, "qstrdefs.generated.h")), "w")
 
         # get config variables
         cfg_bytes_len = int(qcfgs['BYTES_IN_LEN'])
@@ -320,7 +320,7 @@ const mp_obj_module_t mp_module_arduino = {
         session = self.get_default_session(options)
         
         # setup deploy dir
-        deploydir = Path(user_data_dir, "deploy")
+        deploydir = str(Path(user_data_dir, "deploy"))
         if not os.path.exists(deploydir):
             os.makedirs(deploydir)
         # create build dir, This folder will be deleted after compilation
@@ -339,7 +339,7 @@ const mp_obj_module_t mp_module_arduino = {
             str(Path(user_data_dir+board_headers+self.board)))
 
         # setup ardupy modules dir
-        moduledir = Path(user_data_dir, "modules")
+        moduledir = str(Path(user_data_dir, "modules"))
         if not os.path.exists(moduledir):
             os.makedirs(moduledir)
         modules = os.listdir(moduledir)

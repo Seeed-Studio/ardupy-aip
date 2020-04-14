@@ -28,7 +28,7 @@ import sys
 import os
 import locale
 import json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 import urllib.request
 import shutil
@@ -60,7 +60,7 @@ def main(args=None):
     is_update = True
     for files in user_data_dir_files:
         if files[0:30] == "package_seeeduino_ardupy_index":
-            file_data = date.fromisoformat(files[31:41])
+            file_data = datetime.strptime(files[31:41], '%Y-%m-%d').date()
             current_package_seeeduino_ardupy = files
             if file_data == today:
                 is_update = False
