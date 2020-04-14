@@ -1,18 +1,34 @@
+# ArduPy AIP
+aip is a utility to develop [ArduPy](https://github.com/Seeed-Studio/ArduPy) and  interact witch ArduPy board. It enables users to quickly get started with ardupy.
 
-# Usage
+aip is meant to be a simple command line tool. You can customize your own ardupy firmware through it, without needing to know more details about ArduPy. You can also use it to interact with your development board, such as adding, deleting, checking and modifying files, and running repl.
 
-for example:
+
+### Installation
+
+- To install the latest release from PyPi:
 ```
-PS C:\Users\baozhu\Desktop\temp\aip> aip install seeed-studio/seeed-ardupy-mma7660
-seeed-studio/seeed-ardupy-mma7660
-PS C:\Users\baozhu\Desktop\temp\aip> aip install seeed-studio/seeed-ardupy-p9813
-seeed-studio/seeed-ardupy-p9813
-PS C:\Users\baozhu\Desktop\temp\aip> aip install  seeed-studio/seeed-ardupy-tm1637
-seeed-studio/seeed-ardupy-tm1637
-PS C:\Users\baozhu\Desktop\temp\aip> aip install seeed-studio/seeed-ardupy-my9221
-seeed-studio/seeed-ardupy-my9221
-PS C:\Users\baozhu\Desktop\temp\aip> aip install seeed-studio/seeed-ardupy-ultrasonic-sensor
-seeed-studio/seeed-ardupy-ultrasonic-sensor
-PS C:\Users\baozhu\Desktop\temp\aip> aip build
-PS C:\Users\baozhu\Desktop\temp\aip> aip flash
+      sudo pip install aip
 ```
+- From Source
+Clone this repository:
+```
+      git clone https://github.com/Seeed-Studio/ardupy-aip
+```
+
+- To install for Python 3, execute the following:
+```
+      pip3 install -U -r .
+```
+
+### Usage
+
+| cmd  | function|  Example|
+| ---- | ---- | ---- |
+| **aip** help | help | aip help |
+|  **aip** build *-b <--board>*  | build frimware |aip build -b wio_terminal   |
+| **aip** flash *-p <--port>* | flash frimware |aip flash |
+| **aip** rshell *--cmd repl* | open repl |**aip** rshell *-cmd repl* |
+
+For more commands, see help.
+

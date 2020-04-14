@@ -16,7 +16,8 @@ requirements = [
     'pyusb',
     'demjson',
     'pip',
-    'pyserial'
+    'pyserial',
+    'rshell'
 ]
 
 setup_requirements = [
