@@ -377,6 +377,8 @@ const mp_obj_module_t mp_module_arduino = {
         os.system(str(Path(user_data_dir + gcc_48_size)) +
                   " -A " + str(Path(builddir + "/Ardupy")))
 
+        print('\033[32mFirmware path: '+str(Path(str(deploydir) + "/Ardupy.bin")) + '\033[0m')
+        print('\033[32mUsage:\n\r    aip flash ' + str(Path(str(deploydir) + "/Ardupy.bin")) + '\033[0m')
         # delete builddir
         shutil.rmtree(builddir)
         return SUCCESS
