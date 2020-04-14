@@ -1,13 +1,6 @@
 language: generic
 global:
   - CLIVERSION=0.7.2
-matrix:
-  include:
-    - env:
-        - BOARD="Seeeduino:samd:zero"
-    - env:
-        - BOARD="Seeeduino:samd:seeed_wio_terminal"
-
 before_install:
   - sudo apt-get install --reinstall python3-pip
   - python3 -m pip install

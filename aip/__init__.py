@@ -51,7 +51,7 @@ def main(args=None):
         args = sys.argv[1:]
 
     # is update package_seeeduino_ardupy_index.json
-    user_data_dir = appdirs.user_data_dir(appname="aip")
+    user_data_dir = str(appdirs.user_data_dir(appname="aip"))
     if not os.path.exists(user_data_dir):
         os.makedirs(user_data_dir)
     today = date.today()
@@ -67,12 +67,12 @@ def main(args=None):
                 break
 
     if is_update:
-        if os.path.exists(Path(user_data_dir, current_package_seeeduino_ardupy)):
+        if os.path.exists(str(Path(user_data_dir, current_package_seeeduino_ardupy))):
             os.remove(
-                Path(user_data_dir, current_package_seeeduino_ardupy))
+                str(Path(user_data_dir, current_package_seeeduino_ardupy)))
         print("update latest package_seeeduino_ardupy_index.json ...")
         urllib.request.urlretrieve('https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json',
-                                   Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json"))
+                                   str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")))
 
     from aip.command import commands_dict, parse_command
     from aip.variable import shell_commands
