@@ -108,6 +108,6 @@ def readonly_handler(func, path, execinfo):
 user_data_dir = appdirs.user_data_dir(appname="aip")
 
 today = date.today()
-with open(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json"), 'r') as load_f:
+with open(str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")), 'r') as load_f:
     json_dict = json.load(load_f)
     BOARD_IDS = json_dict['board']

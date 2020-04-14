@@ -89,8 +89,8 @@ class installCommand(RequirementCommand):
         if options.uninstall == True:
             for package in args:
                 print(package[package.find("/")+1:])
-                if os.path.exists(Path(moduledir, package[package.find("/") + 1:])):
-                    shutil.rmtree(Path(moduledir, package[package.find("/") + 1:]), onerror=readonly_handler)
+                if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):
+                    shutil.rmtree(str(Path(moduledir, package[package.find("/") + 1:])), onerror=readonly_handler)
                 else:
                     print("\033[93m" + package[package.find("/")+1:] + " not exists\033[0m")
         elif options.list == True:
@@ -98,14 +98,14 @@ class installCommand(RequirementCommand):
         else:
             for package in args:
                 print(package)
-                if os.path.exists(Path(moduledir, package[package.find("/") + 1:])):
+                if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):
                     shutil.rmtree(
-                        Path(moduledir, package[package.find("/")+1:]))
+                        str(Path(moduledir, package[package.find("/")+1:])))
                 clone_repository("https://github.com/"+package,
-                                 Path(moduledir, package[package.find("/")+1:]))
+                                 str(Path(moduledir, package[package.find("/")+1:])))
                 repo = Repository(
-                    Path(
-                        Path(moduledir, package[package.find("/") + 1:]), '.git')
+                    str(Path(
+                        str(Path(moduledir, package[package.find("/") + 1:])), '.git'))
                 )
                 repo.init_submodules()
                 repo.update_submodules()
