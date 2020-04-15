@@ -35,8 +35,8 @@ import platform
 import time
 from aip.files import *
 from aip.pyboard import *
-from aip.serialUtils import windows_full_port_name
-from aip.serialUtils import SerialUtils
+from aip.utils import windows_full_port_name
+from aip.utils import SerialUtils
 import serial
 import subprocess
 import posixpath
@@ -53,8 +53,8 @@ class lsCommand(Command):
     """
     name = 'ls'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "ls."
+      %prog [options] [args] ..."""
+    summary = "List directory of the ArduPy board.."
 
     def __init__(self, *args, **kw):
         super(lsCommand, self).__init__(*args, **kw)
@@ -88,10 +88,12 @@ class lsCommand(Command):
             port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
             port = options.port
+        
+        remote_dir = ''
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
+            print("usage\n\r    aip ls [-p, --port=<port>] [remote_dir]")
             return ERROR
 
         _board = Pyboard(port)
@@ -135,7 +137,7 @@ class replCommand(Command):
 
         # if options.port == "":
         #     print("port is is necessary!")
-        #     print("<usage>    aip repl -p, --port <port>")
+        #     print("usage\n\r    aip repl [-p, --port=<port>]")
         #     return ERROR
 
         # port = serial.Serial(port=options.port, baudrate=115200, bytesize=8, parity='E', stopbits=1, timeout=2)
@@ -150,12 +152,13 @@ class replCommand(Command):
 
 class getCommand(Command):
     """
-    get
+    Retrieve the contents of the specified file and return its contents
+    as a byte string.
     """
     name = 'get'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "get"
+      %prog [options] <args> ..."""
+    summary = "Get files on ArduPy board."
 
     def __init__(self, *args, **kw):
         super(getCommand, self).__init__(*args, **kw)
@@ -178,14 +181,14 @@ class getCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
+            print("usage\n\r    aip get [-p, --port=<port>]  <remote_file>  [local_file]")
             return ERROR
 
         _board = Pyboard(port)
 
         if len(args) == 0:
             print("remote_file is necessary!")
-            print("<usage>    aip get -p, --port <port>  <remote_file>  <local_file>")
+            print("usage\n\r    aip get [-p, --port=<port>]  <remote_file>  [local_file]")
             return ERROR
 
         remote_file_name = args[0]
@@ -209,12 +212,12 @@ class getCommand(Command):
 
 class putCommand(Command):
     """
-    put
+    Create or update the specified file with the provided data.
     """
     name = 'put'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "put"
+      %prog [options] <args> ..."""
+    summary = "Put the file on ArduPy board."
 
     def __init__(self, *args, **kw):
         super(putCommand, self).__init__(*args, **kw)
@@ -237,15 +240,14 @@ class putCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
+            print("usage\n\r    aip put [-p, --port=<port>]  <local_file> [remote_file]")
             return ERROR
 
         _board = Pyboard(port)
 
         if len(args) == 0:
             print("local file is necessary!")
-            print("<usage>    aip put -p, --port <port>  <local_file>  <remote_file>")
+            print("usage\n\r    aip put [-p, --port=<port>]  <local_file> [remote_file]")
             return ERROR
 
         local_file_name = args[0]
@@ -297,12 +299,13 @@ class putCommand(Command):
 
 class mkdirCommand(Command):
     """
-    mkdir
+    Create the specified directory.  Note this cannot create a recursive
+    hierarchy of directories, instead each one should be created separately.
     """
     name = 'mkdir'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "mkdir"
+      %prog [options] <args> ..."""
+    summary = "Create a folder on the ArduPy board."
 
     def __init__(self, *args, **kw):
         super(mkdirCommand, self).__init__(*args, **kw)
@@ -332,8 +335,7 @@ class mkdirCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip mkdir -p, --port <port> -e --exists <exists> <directory>")
+            print("usage\n\r    aip mkdir [-p, --port=<port>] [-e --exists=<exists>] <directory>")
             return ERROR
 
         _board = Pyboard(port)
@@ -341,7 +343,7 @@ class mkdirCommand(Command):
         if len(args) == 0:
             print("directory is necessary!")
             print(
-                "<usage>    aip mkdir -p, --port <port> -e --exists <exists> <directory>")
+                "usage\n\r    aip mkdir [-p, --port=<port>] [-e --exists=<exists>] <directory>")
             return ERROR
 
         directory = args[0]
@@ -355,12 +357,12 @@ class mkdirCommand(Command):
 
 class rmCommand(Command):
     """
-    rm
+    Remove the specified file on ArduPy Board.
     """
     name = 'rm'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "rm"
+      %prog [options] <args> ..."""
+    summary = "Remove the specified file on ArduPy Board."
 
     def __init__(self, *args, **kw):
         super(rmCommand, self).__init__(*args, **kw)
@@ -383,16 +385,14 @@ class rmCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip rm -p, --port <port> <remote_file>")
+            print("usage\n\r    aip rm [-p, --port=<port>] <remote_file>")
             return ERROR
 
         _board = Pyboard(port)
 
         if len(args) == 0:
             print("remote file is necessary!")
-            print(
-                "<usage>    aip rm -p, --port <port> <remote_file>")
+            print("usage\n\r    aip rm [-p, --port=<port>] <remote_file>")
             return ERROR
 
         remote_file_name = args[0]
@@ -406,12 +406,12 @@ class rmCommand(Command):
 
 class rmdirCommand(Command):
     """
-    rmdir
+    Remove the specified directory on ArduPy Board.
     """
     name = 'rmdir'
     usage = """
       %prog [options] <package> ..."""
-    summary = "rmdir"
+    summary = "Remove the specified directory on ArduPy Board."
 
     def __init__(self, *args, **kw):
         super(rmdirCommand, self).__init__(*args, **kw)
@@ -441,16 +441,14 @@ class rmdirCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip rmdir -p, --port <port> -m --missing <directory>")
+            print("usage\n\r    aip rmdir [-p, --port=<port>] [-m --missing=<missing_okay>] <remote_dir>")
             return ERROR
 
         _board = Pyboard(port)
 
         if len(args) == 0:
             print("directory is necessary!")
-            print(
-                "<usage>    aip rmdir -p, --port <port> -m --missing <directory>")
+            print("usage\n\r    aip rmdir [-p, --port=<port>] [-m --missing=<missing_okay>] <remote_dir>")
             return ERROR
 
         directory = args[0]
@@ -465,12 +463,16 @@ class rmdirCommand(Command):
 
 class runCommand(Command):
     """
-    run
+    run the provided script and return its output.  If wait_output is True
+    (default) then wait for the script to finish and then return its output,
+    otherwise just run the script and don't wait for any output.
+    If stream_output is True(default) then return None and print outputs to
+    stdout without buffering.
     """
     name = 'run'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "run"
+      %prog [options] <args> ..."""
+    summary = "Run a file on the ArduPy Board."
 
     def __init__(self, *args, **kw):
         super(runCommand, self).__init__(*args, **kw)
@@ -500,14 +502,12 @@ class runCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip run -p, --port <port> <local_file>")
+            print("usage\n\r    aip run [-p, --port=<port>] [-n, --no-output=<no_output>] <local_file>")
             return ERROR
 
         if len(args) == 0:
             print("local file is necessary!")
-            print(
-                "<usage>    aip run -p, --port <port> <local_file>")
+            print("usage\n\r    aip run [-p, --port=<port>] [-n, --no-output=<no_output>] <local_file>")
             return ERROR
 
         local_file_name = args[0]
@@ -529,12 +529,12 @@ class runCommand(Command):
 
 class scanCommand(Command):
     """
-    scan
+    Scan all available boards.
     """
     name = 'scan'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "scan"
+      %prog [options] <args> ..."""
+    summary = "Scan all available boards."
 
     def __init__(self, *args, **kw):
         super(scanCommand, self).__init__(*args, **kw)
@@ -572,12 +572,12 @@ class scanCommand(Command):
 
 class bvCommand(Command):
     """
-    bv
+    Show the firmware version of ArduPy Board. 
     """
     name = 'bv'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "bv"
+      %prog [options] ..."""
+    summary = "Show the firmware version of ArduPy Board. "
 
     def __init__(self, *args, **kw):
         super(bvCommand, self).__init__(*args, **kw)
@@ -599,8 +599,7 @@ class bvCommand(Command):
 
         if port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip run -p, --port <port> <local_file>")
+            print("usage\n\r    aip run [-p, --port=<port>]")
             return ERROR
 
         _board = Pyboard(port)

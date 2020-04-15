@@ -46,7 +46,7 @@ import shutil
 from pathlib import Path
 from rshell import main as rsh
 import argparse
-from aip.serialUtils import SerialUtils
+from aip.utils import SerialUtils
 
 
 

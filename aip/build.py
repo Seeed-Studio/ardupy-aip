@@ -48,14 +48,12 @@ import re
 
 class buildCommand(RequirementCommand):
     """
-    Show information about one or more installed packages.
-
-    The output is in RFC-compliant mail header format.
+    build ArduPy firmware
     """
     name = 'build'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "build all of package"
+      %prog [options] <args> ..."""
+    summary = "build ArduPy firmware"
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):

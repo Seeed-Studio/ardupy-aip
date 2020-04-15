@@ -42,21 +42,19 @@ import os
 import sys
 from pathlib import Path
 import platform
-from aip.serialUtils import SerialUtils
+from aip.utils import SerialUtils
 from aip.variable import *
 import time
 
 
 class flashCommand(RequirementCommand):
     """
-    Show information about one or more installed packages.
-
-    The output is in RFC-compliant mail header format.
+    flash firmware to ArduPy board.
     """
     name = 'flash'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "flash all of package"
+      %prog [options] <args> ..."""
+    summary = "Flash firmware to ArduPy board."
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
@@ -87,8 +85,7 @@ class flashCommand(RequirementCommand):
 
         if self.port == "None":
             print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print(
-                "<usage>    aip run -p, --port <port> <local_file>")
+            print("<usage>    aip run [-p, --port=<port>] [local_file]")
             return "echo not support"
 
         if os.name == "posix":
@@ -103,8 +100,7 @@ class flashCommand(RequirementCommand):
     def run(self, options, args):
 
         self.port = options.port
-        bossacdir = str(Path(user_data_dir +
-                         "/ardupycore/Seeeduino/tools/bossac"))
+        bossacdir = str(Path(user_data_dir +"/ardupycore/Seeeduino/tools/bossac"))
 
         print(str(bossacdir))
         if not os.path.exists(bossacdir):
@@ -155,33 +151,30 @@ class flashCommand(RequirementCommand):
                 do_bossac = False
                 break
 
-        name, version, url = self.serial.getBoardByPort(port)
-
-        ardupybin = ""
-        if len(args) > 0:
-            ardupybin = args[0]
-            if not os.path.exists(ardupybin):
-                print('\033[31m The path of firmware didn\'t exists!\033[0m')
-                return ERROR
-        else:
-           
-            firmwaredir = str(Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_')))
-            if not os.path.exists(firmwaredir):
-                os.makedirs(firmwaredir)
-            ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
-            if not os.path.exists(ardupybin):
-                downloader = Downloader(session, progress_bar="on")
-                _download_http_url(
-                    link=Link(url),
-                    downloader=downloader,
-                    temp_dir=firmwaredir,
-                    hashes=None)
-
         if do_bossac == True:
+            name, version, url = self.serial.getBoardByPort(port)
+            ardupybin = ""
+            if len(args) > 0:
+                ardupybin = args[0]
+                if not os.path.exists(ardupybin):
+                    print('\033[31m The path of firmware didn\'t exists!\033[0m')
+                    return ERROR
+            else:
+                firmwaredir = str(Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_')))
+                if not os.path.exists(firmwaredir):
+                    os.makedirs(firmwaredir)
+                ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
+                if not os.path.exists(ardupybin):
+                    downloader = Downloader(session, progress_bar="on")
+                    _download_http_url(
+                        link=Link(url),
+                        downloader=downloader,
+                        temp_dir=firmwaredir,
+                        hashes=None)
             print((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
             os.system((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
         else:
-            print(
-                "\033[93mSorry, the device you should have is not plugged in.[0m")
+            print("\033[93mSorry, the device you should have is not plugged in.\033[0m")
+            return ERROR
 
         return SUCCESS

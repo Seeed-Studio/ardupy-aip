@@ -48,14 +48,12 @@ from pathlib import Path
 
 class installCommand(RequirementCommand):
     """
-    Show information about one or more installed packages.
-
-    The output is in RFC-compliant mail header format.
+    Install Arudino Library binding with ArduPy.
     """
     name = 'install'
     usage = """
-      %prog [options] <package> ..."""
-    summary = "install all of package"
+      %prog [options] <args> ..."""
+    summary = "Install Arudino Library binding with ArduPy."
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
