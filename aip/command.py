@@ -45,7 +45,6 @@ from pip._internal.cli.base_command import Command
 from aip.build import buildCommand
 from aip.install import installCommand
 from aip.flash import flashCommand
-from aip.rshell import rshellCommand
 from aip.shell import lsCommand
 from aip.shell import replCommand
 from aip.shell import getCommand
@@ -114,7 +113,6 @@ commands_order = [
     HelpCommand,
     buildCommand,
     installCommand,
-    rshellCommand,
     flashCommand,
     lsCommand,
     replCommand,
