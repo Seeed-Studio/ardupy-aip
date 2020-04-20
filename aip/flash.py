@@ -66,6 +66,13 @@ class flashCommand(RequirementCommand):
             default="",
             help='The port of the ArduPy board.')
 
+        self.cmd_opts.add_option(
+            '-o', '--origin',
+            dest='origin',
+            action='store_true',
+            default=False,
+            help='flash latest version firmware')
+
         self.parser.insert_option_group(0, self.cmd_opts)
 
         index_opts = cmdoptions.make_option_group(
@@ -159,7 +166,7 @@ class flashCommand(RequirementCommand):
                 if not os.path.exists(ardupybin):
                     print('\033[31m The path of firmware didn\'t exists!\033[0m')
                     return ERROR
-            else:
+            elif options.origin == True:
                 firmwaredir = str(Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_')))
                 if not os.path.exists(firmwaredir):
                     os.makedirs(firmwaredir)
@@ -171,6 +178,9 @@ class flashCommand(RequirementCommand):
                         downloader=downloader,
                         temp_dir=firmwaredir,
                         hashes=None)
+            else:
+                ardupybin = str(Path(user_data_dir +"/deploy/Ardupy.bin"))
+
             print((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
             os.system((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
         else:
