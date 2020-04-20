@@ -212,19 +212,6 @@ class rshellCommand(RequirementCommand):
 
 
         try:
-            print("Debug = %s" % options.debug)
-            print("Port = %s" % options.port)
-            print("Baud = %d" % options.baud)
-            print("User = %s" % options.user)
-            print("Password = %s" % options.password)
-            print("Wait = %d" % options.wait)
-            print("List = %d" % options.list)
-            print("nocolor = %d" % options.nocolor)
-            print("ascii = %d" % options.ascii_xfer)
-            print("Timing = %d" % options.timing)
-            print("Quiet = %d" % options.quiet)
-            print("BUFFER_SIZE = %d" % BUFFER_SIZE)
-            print("Cmd = [%s]" % options.cmd)
             global ASCII_XFER
             ASCII_XFER = options.ascii_xfer
             RTS = options.rts

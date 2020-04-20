@@ -15,7 +15,7 @@ requirements = [
     'pygit2',
     'pyusb',
     'demjson',
-    'pip',
+    'pip > 20.0.0',
     'pyserial',
     'rshell'
 ]
@@ -30,7 +30,7 @@ test_requirements = [
 
 setup(
     name='aip',
-    version='0.1.0',
+    version='0.2.0',
     description="Ardupy library package manager",
     long_description=README,
     author="Baozhu Zuo",
