@@ -32,7 +32,7 @@ from datetime import date, datetime
 from pathlib import Path
 import urllib.request
 import shutil
-
+from aip.log import Log
 
 from pip._internal.exceptions import PipError
 
@@ -42,7 +42,7 @@ from pip._internal.cli.autocompletion import autocomplete
 import importlib
 #from aip.variable import *
 from pip._internal.utils import appdirs
-
+from aip.log import log
 
 def main(args=None):
 
@@ -67,12 +67,15 @@ def main(args=None):
                 break
 
     if is_update:
-        if os.path.exists(str(Path(user_data_dir, current_package_seeeduino_ardupy))):
-            os.remove(
-                str(Path(user_data_dir, current_package_seeeduino_ardupy)))
-        print("update latest package_seeeduino_ardupy_index.json ...")
-        urllib.request.urlretrieve('https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json',
+        log.tips("update latest package_seeeduino_ardupy_index.json ...")
+        try:
+            urllib.request.urlretrieve('https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json',
                                    str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")))
+            if os.path.exists(str(Path(user_data_dir, current_package_seeeduino_ardupy))):
+                os.remove(str(Path(user_data_dir, current_package_seeeduino_ardupy)))
+        except Exception as e:
+            log.error(e)
+            log.waring("update latest package_seeeduino_ardupy_index.json Failed! Please check you network connction!")
 
     from aip.command import commands_dict, parse_command
     from aip.variable import shell_commands

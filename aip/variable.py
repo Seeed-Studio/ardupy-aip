@@ -2,9 +2,10 @@
 from datetime import date
 from pip._internal.utils import appdirs
 from pathlib import Path
+from aip.log import log
 import os
 import stat
-
+import sys
 import json
 
 mp_needful_file = ["/ardupycore/ArduPy/MicroPython/py/objmodule.c",
@@ -108,8 +109,24 @@ def readonly_handler(func, path, execinfo):
 # List of supported board USB IDs.  Each board is a tuple of unique USB vendor
 # ID, USB product ID.
 user_data_dir = appdirs.user_data_dir(appname="aip")
-
 today = date.today()
-with open(str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")), 'r') as load_f:
-    json_dict = json.load(load_f)
-    BOARD_IDS = json_dict['board']
+package_seeeduino_ardupy_index_json = str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json"))
+if os.path.exists(package_seeeduino_ardupy_index_json):
+    with open(package_seeeduino_ardupy_index_json, 'r') as load_f:
+        json_dict = json.load(load_f)
+        BOARD_IDS = json_dict['board']
+else:
+    try:
+        for file in os.listdir(user_data_dir):
+            if "package_seeeduino_ardupy_index_" in file:
+                package_seeeduino_ardupy_index_json = str(Path(user_data_dir, file))
+                with open(package_seeeduino_ardupy_index_json, 'r') as load_f:
+                    json_dict = json.load(load_f)
+                    BOARD_IDS = json_dict['board']
+                    break
+    except Exception as e:
+        log.error(e)
+        log.error("The package_seeeduino_ardupy_index.json file is missing, execute aip to obtain it automatically")
+        sys.exit(1)
+
+
