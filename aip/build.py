@@ -39,6 +39,8 @@ from pip._internal.operations.prepare import (
 import os
 from aip.variable import *
 from tempfile import *
+from aip.utils import SerialUtils
+from aip.log import log
 import random
 import shutil
 import sys
@@ -48,12 +50,12 @@ import re
 
 class buildCommand(RequirementCommand):
     """
-    build ArduPy firmware
+    Build ArduPy Firmware 
     """
     name = 'build'
     usage = """
       %prog [options] <args> ..."""
-    summary = "build ArduPy firmware"
+    summary = "Build ArduPy Firmware contains the libraries you installed and the basic ArduPy features."
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
@@ -65,6 +67,13 @@ class buildCommand(RequirementCommand):
             action='store',
             default="",
             help='The name of the ArduPy board.')
+        
+        self.cmd_opts.add_option(
+            '-l', '--list',
+            dest='list',
+            action='store_true',
+            default=False,
+            help='List all available boards')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -306,8 +315,17 @@ const mp_obj_module_t mp_module_arduino = {
             except OSError as error:
                 print("Directory '%s remove failed' " % ardupycoredir)
                 print(error)
+    def get_arduinocore_version(self):
+        ardupycoredir = str(Path(user_data_dir+"/ardupycore/Seeeduino/hardware/samd"))
+        self.arduinoCoreVersion = os.listdir(ardupycoredir)[0]
 
     def run(self, options, args):
+        
+        if options.list == True:
+            ser = SerialUtils()
+            print(ser.listBoard())
+            return SUCCESS
+        
         if 'clean' in args:
             self.clean()
             return SUCCESS
@@ -326,7 +344,7 @@ const mp_obj_module_t mp_module_arduino = {
         os.makedirs(builddir)
 
         self.downloadAll(session)
-
+        self.get_arduinocore_version()
         # Converts the header file to the absolute path of the current system
         for h in ardupycore_headers:
             # add Arduino Core version
@@ -364,10 +382,17 @@ const mp_obj_module_t mp_module_arduino = {
         # Compile all source files
         self.buildFarm(builddir)
 
+        firmware_path = str(Path(str(deploydir) + "/Ardupy.bin"))
+
+        #remove the old firmware
+        if os.path.exists(firmware_path):
+            os.remove(firmware_path)
+
         # Convert ELF files to binary files
         objcopy_cmd = str(Path(user_data_dir + gcc_48_objcopy)) + "-O binary " \
             + str(Path(builddir + "/Ardupy")) + " " \
-            + str(Path(str(deploydir) + "/Ardupy.bin"))
+            + firmware_path
+
         print(objcopy_cmd)
         os.system(objcopy_cmd)
 
@@ -375,8 +400,15 @@ const mp_obj_module_t mp_module_arduino = {
         os.system(str(Path(user_data_dir + gcc_48_size)) +
                   " -A " + str(Path(builddir + "/Ardupy")))
 
-        print('\033[32mFirmware path: '+str(Path(str(deploydir) + "/Ardupy.bin")) + '\033[0m')
-        print('\033[32mUsage:\n\r    aip flash ' + str(Path(str(deploydir) + "/Ardupy.bin")) + '\033[0m')
-        # delete builddir
+        # delete build dir
         shutil.rmtree(builddir)
+
+        if os.path.exists(firmware_path):
+            log.tips('Firmware path: '+ firmware_path)
+            log.tips('Usage:\n\r    aip flash')
+        else:
+            error = log.str_error.format('compile error')
+            raise Exception(print(error))
+            #return ERRO
+      
         return SUCCESS
