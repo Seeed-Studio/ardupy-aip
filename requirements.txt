@@ -1,7 +1,5 @@
-pygit2
 pyusb
 pyserial
 demjson
-pip
+pip > 20.0.0
 demjson
-rshell

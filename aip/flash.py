@@ -75,12 +75,11 @@ class flashCommand(RequirementCommand):
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
-        index_opts = cmdoptions.make_option_group(
-            cmdoptions.index_group,
-            self.parser,
-        )
-
-        self.parser.insert_option_group(0, index_opts)
+        # index_opts = cmdoptions.make_option_group(
+        #     cmdoptions.index_group,
+        #     self.parser,
+        # )
+        
         self.serial = SerialUtils()
 
     @property

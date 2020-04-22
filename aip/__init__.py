@@ -81,7 +81,6 @@ def main(args=None):
     deprecation.install_warning_logger()
 
     autocomplete()
-
     try:
         cmd_name, cmd_args = parse_command(args)
     except PipError as exc:
@@ -104,7 +103,7 @@ def main(args=None):
 
     command_class = getattr(module, cmd_name+"Command")
     command = command_class(name=cmd_name, summary="...")
-
+   
     return command.main(cmd_args)
 
 

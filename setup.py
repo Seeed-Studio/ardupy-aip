@@ -12,7 +12,6 @@ Ardupy library package manager
 
 
 requirements = [
-    'pygit2',
     'pyusb',
     'demjson',
     'pip > 20.0.0',
