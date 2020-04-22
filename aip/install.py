@@ -42,6 +42,7 @@ import os
 import stat
 from aip.variable import *
 from aip.command import *
+from aip.log import log
 import shutil
 from pathlib import Path
 
@@ -63,35 +64,35 @@ class installCommand(RequirementCommand):
             dest='uninstall',
             action='store_true',
             default=False,
-            help='Install the aip package')
+            help='Install the aip package.')
 
         self.cmd_opts.add_option(
             '-l', '--list',
             dest='list',
             action='store_true',
             default=False,
-            help='list all the aip package')
+            help='List all the aip package.')
 
         self.cmd_opts.add_option(
             '-n', '--netloc',
             dest='netloc',
             action='store',
             default='github.com',
-            help='net location of the aip package')
+            help='Net location of the aip package.')
 
         self.cmd_opts.add_option(
             '-s', '--scheme',
             dest='scheme',
             action='store',
             default='https',
-            help='scheme of the aip package')
+            help='Scheme of the aip package.')
 
-        # self.cmd_opts.add_option(
-        #     '-f', '--froce',
-        #     dest='froce',
-        #     action='store_true',
-        #     default=False,
-        #     help='froce download the library')
+        self.cmd_opts.add_option(
+            '-F', '--Force',
+            dest='Force',
+            action='store_true',
+            default=False,
+            help='Force download the library.')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -128,41 +129,44 @@ class installCommand(RequirementCommand):
         downloader = Downloader(session, progress_bar="on")
         if options.uninstall == True:
             for package in args:
-                print(package[package.find("/")+1:])
+                log.normal(package[package.find("/")+1:])
                 if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):
                     shutil.rmtree(
                         str(Path(moduledir, package[package.find("/") + 1:])), onerror=readonly_handler)
                 else:
-                    print("\033[93m" + package[package.find("/") +
-                                               1:] + " not exists\033[0m")
+                    log.waring(package[package.find("/") +1:] + " not exists!")
         elif options.list == True:
-            print(os.listdir(moduledir))
+            log.normal(os.listdir(moduledir))
         else:
             for package in args:
                 package_url = self.get_archive_url(options, package)
                 package_location = package_url[:package_url.find('/archive')]
                 package_location = package_location.split('/')[len(package_location.split('/'))-1]
                 package_location = str(Path(moduledir, package_location))   # form location
-                if os.path.exists(package_location):    # remove the old package
-                    shutil.rmtree(package_location, onerror=readonly_handler)
-                link = Link(package_url)
 
+                if options.Force:
+                    if os.path.exists(package_location):    # remove the old package
+                        shutil.rmtree(package_location, onerror=readonly_handler)
+               
                 try:
                     os.makedirs(package_location)
                 except OSError as error:
-                    print("Directory '%s was exists' " % package_location)
-                    print(error)
+                    log.error(error)
+                    log.tips("Use aip install -F Overwrite previous Library")
                     return ERROR
 
+                log.tips("Downloading library......")
                 try:
                     unpack_url(
-                        link,
+                        Link(package_url),
                         package_location,
                         downloader=downloader,
                         download_dir=None,
                     )
-                except :
-                    print(error)
+                except Exception as error:
+                    log.error(error)
+                    if os.path.exists(package_location):    # remove the old package
+                        shutil.rmtree(package_location, onerror=readonly_handler)
                     return ERROR
 
                 # downling dependencies
@@ -174,9 +178,8 @@ class installCommand(RequirementCommand):
                         package_json_dict = json.load(package_json)
                         dependencies = package_json_dict["dependencies"]
                         if len(dependencies) != 0:
-                            print("Downloading dependencies......")
+                            log.tips("Downloading dependencies......")
                         for dependency in dependencies:
-                            print(dependency["name"])
                             dependency_url = self.get_archive_url(options, dependency["url"])
                             dependency_location = package_location + '/' + dependency["name"]
                             try:
@@ -187,11 +190,15 @@ class installCommand(RequirementCommand):
                                     download_dir=None,
                                 )
                             except Exception as error:
-                                print(error)
+                                log.error(error)
+                                if os.path.exists(package_location):    # remove the old package
+                                    shutil.rmtree(package_location, onerror=readonly_handler)
                                 return ERROR
                 except Exception as error:
-                    print("\033[93mBad dependency format, please check library.json\033[0m")
-                    print(error)
+                    log.error(error)
+                    log.error("Bad dependency format, please check library.json")
+                    if os.path.exists(package_location):    # remove the old package
+                        shutil.rmtree(package_location, onerror=readonly_handler)
                     return ERROR
 
 

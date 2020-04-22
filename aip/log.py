@@ -50,6 +50,9 @@ class Log(object):
         str_tips  = self.str_tips.format(t)
         print(str_tips)
     
+    def normal(self, n):
+        print(n)
+    
     # def __line__ (self):
     #     caller = inspect.stack()[1]
     #     return int (caller[2])
