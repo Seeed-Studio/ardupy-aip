@@ -16,6 +16,7 @@ requirements = [
     'demjson',
     'pip > 20.0.0',
     'pyserial',
+    'mpfshell'
 ]
 
 setup_requirements = [
@@ -28,7 +29,7 @@ test_requirements = [
 
 setup(
     name='aip',
-    version='0.2.0',
+    version='0.3.0',
     description="Ardupy library package manager",
     long_description=README,
     author="Baozhu Zuo",

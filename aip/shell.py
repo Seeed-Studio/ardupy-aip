@@ -1,7 +1,6 @@
-
 # The MIT License (MIT)
 #
-# Author: Hongtai Liu (hongtai@foxmail.com)
+# Author: Hongtai Liu (lht856@foxmail.com)
 #
 # Copyright (C) 2020  Seeed Technology Co.,Ltd.
 #
@@ -23,587 +22,196 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+
 from pip._internal.cli.base_command import Command
 from pip._internal.cli.req_command import RequirementCommand
 from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
+from pip._internal.network.download import Downloader
+from pip._internal.models.link import Link
+
+from pip._internal.operations.prepare import (
+    _copy_source_tree,
+    _download_http_url,
+    unpack_url,
+)
 
 import os
 import sys
-from pathlib import Path
-import platform
-import time
-from aip.files import *
-from aip.pyboard import *
-from aip.utils import windows_full_port_name
-from aip.utils import SerialUtils
+from pygit2 import clone_repository
+from pygit2 import Repository
+from aip.variable import *
+from mp import version
 import serial
-import subprocess
-import posixpath
+import shutil
+from pathlib import Path
+from mp import mpfshell as mpf
+import argparse
+from aip.utils import SerialUtils
+import logging
 
 
-class lsCommand(Command):
+
+
+class shellCommand(Command):
     """
-    List the contents of the specified directory (or root if none is
-    specified).  Returns a list of strings with the names of files in the
-    specified directory.  If long_format is True then a list of 2-tuples
-    with the name and size (in bytes) of the item is returned.  Note that
-    it appears the size of directories is not supported by MicroPython and
-    will always return 0 (i.e. no recursive size computation).
+    Show information about one or more installed packages.
+    The output is in RFC-compliant mail header format.
     """
-    name = 'ls'
+    name = 'shell'
     usage = """
-      %prog [options] [args] ..."""
-    summary = "List directory of the ArduPy board.."
+      %prog [options] <package> ..."""
+    summary = ""
+    ignore_require_venv = True
+    port = ""
 
     def __init__(self, *args, **kw):
-        super(lsCommand, self).__init__(*args, **kw)
+        super(shellCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
+            '-c', 
+            '--command',
+            dest='command',
             action='store',
-            default="",
-            help='The port of the ArduPy board.')
+            default=None,
+            help='Texecute given commands (separated by ;)')
 
         self.cmd_opts.add_option(
-            '-l', '--long_format',
-            dest='long_format',
-            action='store_true',
-            default=False,
-            help='long_format')
+            '-s', 
+            '--script',
+            dest='script',
+            action='store',
+            default=None,
+            help='execute commands from file')
 
         self.cmd_opts.add_option(
-            '-r', '--recursive',
-            dest='recursive',
+            '-n', 
+            '--noninteractive',
+            dest='noninteractive',
             action='store_true',
             default=False,
-            help='recursive')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
+            help="non interactive mode (don't enter shell)")
         
-        remote_dir = ''
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip ls [-p, --port=<port>] [remote_dir]")
-            return ERROR
-
-        _board = Pyboard(port)
-
-        board_files = Files(_board)
-
-        directory = "/"
-        if len(args) > 0:
-            directory = args[0]
-
-        for f in board_files.ls(directory, options.long_format, options.recursive):
-            print(f)
-
-        return SUCCESS
-
-
-class replCommand(Command):
-    """
-    repl
-    """
-    name = 'repl'
-    usage = """
-      %prog [options] <package> ..."""
-    summary = "repl."
-
-    def __init__(self, *args, **kw):
-        super(replCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        print(
-            '\033[31mSorry, this function is not implemented yet. Please look forward to the next version.')
-
-        # if options.port == "":
-        #     print("port is is necessary!")
-        #     print("usage\n\r    aip repl [-p, --port=<port>]")
-        #     return ERROR
-
-        # port = serial.Serial(port=options.port, baudrate=115200, bytesize=8, parity='E', stopbits=1, timeout=2)
-
-        # while True:
-        #     getch = _Getch()
-        #     a = getch()
-        #     port.write(bytes(a,encoding='utf-8'))
-
-        return SUCCESS
-
-
-class getCommand(Command):
-    """
-    Retrieve the contents of the specified file and return its contents
-    as a byte string.
-    """
-    name = 'get'
-    usage = """
-      %prog [options] <args> ..."""
-    summary = "Get files on ArduPy board."
-
-    def __init__(self, *args, **kw):
-        super(getCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip get [-p, --port=<port>]  <remote_file>  [local_file]")
-            return ERROR
-
-        _board = Pyboard(port)
-
-        if len(args) == 0:
-            print("remote_file is necessary!")
-            print("usage\n\r    aip get [-p, --port=<port>]  <remote_file>  [local_file]")
-            return ERROR
-
-        remote_file_name = args[0]
-        local_file_name = ""
-        if len(args) >= 2:
-            local_file_name = args[1]
-
-        board_files = Files(_board)
-
-        remote_file = board_files.get(remote_file_name)
-
-        if local_file_name != "":
-            local_file = open(local_file_name, mode="wb", newline=None)
-            local_file.write(remote_file)
-            local_file.close()
-        else:
-            print(remote_file.decode("utf-8"))
-
-        return SUCCESS
-
-
-class putCommand(Command):
-    """
-    Create or update the specified file with the provided data.
-    """
-    name = 'put'
-    usage = """
-      %prog [options] <args> ..."""
-    summary = "Put the file on ArduPy board."
-
-    def __init__(self, *args, **kw):
-        super(putCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip put [-p, --port=<port>]  <local_file> [remote_file]")
-            return ERROR
-
-        _board = Pyboard(port)
-
-        if len(args) == 0:
-            print("local file is necessary!")
-            print("usage\n\r    aip put [-p, --port=<port>]  <local_file> [remote_file]")
-            return ERROR
-
-        local_file_name = args[0]
-        remote_file_name = ""
-        if len(args) >= 2:
-            remote_file_name = args[1]
-        # Use the local filename if no remote filename is provided.
-
-        if remote_file_name == "":
-            remote_file_name = os.path.basename(
-                os.path.abspath(local_file_name))
-
-        board_files = Files(_board)
-
-        if os.path.isdir(local_file_name):
-            # Directory copy, create the directory and walk all children to copy
-            # over the files.
-
-            board_files = Files(_board)
-
-            for parent, child_dirs, child_files in os.walk(local_file_name, followlinks=True):
-                # Create board filesystem absolute path to parent directory.
-                remote_parent = posixpath.normpath(
-                    posixpath.join(remote_file_name, os.path.relpath(
-                        parent, local_file_name))
-                )
-                try:
-                    # Create remote parent directory.
-                    board_files.mkdir(remote_parent)
-                except DirectoryExistsError:
-                    # Ignore errors for directories that already exist.
-                    pass
-                # Loop through all the files and put them on the board too.
-                for filename in child_files:
-                    with open(os.path.join(parent, filename), "rb") as infile:
-                        remote_filename = posixpath.join(
-                            remote_parent, filename)
-                        board_files.put(remote_filename, infile.read())
-
-        else:
-            # File copy, open the file and copy its contents to the board.
-            # Put the file on the board.
-            with open(local_file_name, "rb") as infile:
-                board_files = Files(_board)
-                board_files.put(remote_file_name, infile.read())
-
-        return SUCCESS
-
-
-class mkdirCommand(Command):
-    """
-    Create the specified directory.  Note this cannot create a recursive
-    hierarchy of directories, instead each one should be created separately.
-    """
-    name = 'mkdir'
-    usage = """
-      %prog [options] <args> ..."""
-    summary = "Create a folder on the ArduPy board."
-
-    def __init__(self, *args, **kw):
-        super(mkdirCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.cmd_opts.add_option(
-            '-e', '--exists',
-            dest='exists',
+            '--nocolor',
+            dest='nocolor',
             action='store_true',
-            default=True,
-            help='Ignore if the directory already exists')
+            default=False,
+            help="disable color")
+        
+        self.cmd_opts.add_option(
+            '--nocache',
+            dest='nocache',
+            action='store_true',
+            default=False,
+            help="disable nocache")
+        
+        self.cmd_opts.add_option(
+            "--logfile",
+            dest="logfile",
+            default=None,
+            help="write log to file")
+             
+        self.cmd_opts.add_option(
+            '--loglevel',
+            dest='loglevel',
+            action='store',
+            default="INFO",
+            help="loglevel (CRITICAL, ERROR, WARNING, INFO, DEBUG)")
+        
+        self.cmd_opts.add_option(
+            "--reset",
+            action="store_true",
+            default=False,
+            help="hard reset device via DTR (serial connection only)"
+            )
+        
+        self.cmd_opts.add_option(
+            "-o",
+            "--open",
+            dest="open",
+            action="store",
+            default=None,
+            help="directly opens board",
+        )
+
+        self.cmd_opts.add_option(
+            '-p', '--port',
+            dest='port',
+            action='store',
+            default="",
+            help='The port of the ArduPy board.')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
+  
     def run(self, options, args):
+        
+        if len(args) >= 1:
+            board = args[0]
+        else:
+            board = None  
 
         ser = SerialUtils()
         if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
+            if board == None:
+                board, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
-            port = options.port
+            board = options.port
 
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip mkdir [-p, --port=<port>] [-e --exists=<exists>] <directory>")
-            return ERROR
+        format = "%(asctime)s\t%(levelname)s\t%(message)s"
 
-        _board = Pyboard(port)
+        if options.logfile is not None:
+            logging.basicConfig(format=format, filename=options.logfile, level=options.loglevel)
+        else:
+            logging.basicConfig(format=format, level=logging.CRITICAL)
+        
+        mpfs = mpf.MpFileShell(not options.nocolor, not options.nocache, options.reset)
 
-        if len(args) == 0:
-            print("directory is necessary!")
+        if options.open is not None:
+            if board is None:
+                if not mpfs.do_open(options.open):
+                    return ERROR
+        else:
             print(
-                "usage\n\r    aip mkdir [-p, --port=<port>] [-e --exists=<exists>] <directory>")
-            return ERROR
+                "Positional argument ({}) takes precedence over --open.".format(
+                    board
+                )
+            )
+        if board is not None:
+            mpfs.do_open(board)
 
-        directory = args[0]
+        if options.command is not None:
+            for acmd in "".join(options.command).split(";"):
+                scmd = acmd.strip()
+                if len(scmd) > 0 and not scmd.startswith("#"):
+                    mpfs.onecmd(scmd)
 
-        board_files = Files(_board)
+        elif options.script is not None:
 
-        board_files.mkdir(directory, exists_okay=options.exists)
+            f = open(options.script, "r")
+            script = ""
 
-        return SUCCESS
+            for line in f:
 
+                sline = line.strip()
 
-class rmCommand(Command):
-    """
-    Remove the specified file on ArduPy Board.
-    """
-    name = 'rm'
-    usage = """
-      %prog [options] <args> ..."""
-    summary = "Remove the specified file on ArduPy Board."
+                if len(sline) > 0 and not sline.startswith("#"):
+                    script += sline + "\n"
 
-    def __init__(self, *args, **kw):
-        super(rmCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
+            if sys.version_info < (3, 0):
+                sys.stdin = io.StringIO(script.decode("utf-8"))
+            else:
+                sys.stdin = io.StringIO(script)
 
-        self.parser.insert_option_group(0, self.cmd_opts)
+            mpfs.intro = ""
+            mpfs.prompt = ""
 
-    def run(self, options, args):
+        if not options.noninteractive:
 
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip rm [-p, --port=<port>] <remote_file>")
-            return ERROR
-
-        _board = Pyboard(port)
-
-        if len(args) == 0:
-            print("remote file is necessary!")
-            print("usage\n\r    aip rm [-p, --port=<port>] <remote_file>")
-            return ERROR
-
-        remote_file_name = args[0]
-
-        board_files = Files(_board)
-
-        board_files.rm(remote_file_name)
+            try:
+                mpfs.cmdloop()
+            except KeyboardInterrupt:
+                print("")
 
         return SUCCESS
-
-
-class rmdirCommand(Command):
-    """
-    Remove the specified directory on ArduPy Board.
-    """
-    name = 'rmdir'
-    usage = """
-      %prog [options] <package> ..."""
-    summary = "Remove the specified directory on ArduPy Board."
-
-    def __init__(self, *args, **kw):
-        super(rmdirCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.cmd_opts.add_option(
-            '-m', '--missing',
-            dest='missing_okay',
-            action='store_true',
-            default=True,
-            help='Ignore if the directory does not exist.')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip rmdir [-p, --port=<port>] [-m --missing=<missing_okay>] <remote_dir>")
-            return ERROR
-
-        _board = Pyboard(port)
-
-        if len(args) == 0:
-            print("directory is necessary!")
-            print("usage\n\r    aip rmdir [-p, --port=<port>] [-m --missing=<missing_okay>] <remote_dir>")
-            return ERROR
-
-        directory = args[0]
-
-        _board = Pyboard(port)
-        board_files = Files(_board)
-
-        board_files.rmdir(directory, missing_okay=options.missing_okay)
-
-        return SUCCESS
-
-
-class runCommand(Command):
-    """
-    run the provided script and return its output.  If wait_output is True
-    (default) then wait for the script to finish and then return its output,
-    otherwise just run the script and don't wait for any output.
-    If stream_output is True(default) then return None and print outputs to
-    stdout without buffering.
-    """
-    name = 'run'
-    usage = """
-      %prog [options] <args> ..."""
-    summary = "Run a file on the ArduPy Board."
-
-    def __init__(self, *args, **kw):
-        super(runCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.cmd_opts.add_option(
-            '-n', '--no-output',
-            dest='no_output',
-            action='store_true',
-            default=False,
-            help='Run the code without waiting for it to finish and print output.  Use this when running code with main loops that never return.')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip run [-p, --port=<port>] [-n, --no-output=<no_output>] <local_file>")
-            return ERROR
-
-        if len(args) == 0:
-            print("local file is necessary!")
-            print("usage\n\r    aip run [-p, --port=<port>] [-n, --no-output=<no_output>] <local_file>")
-            return ERROR
-
-        local_file_name = args[0]
-
-        _board = Pyboard(port)
-        board_files = Files(_board)
-
-        try:
-            output = board_files.run(
-                local_file_name, not options.no_output, not options.no_output)
-            if output is not None:
-                print(output.decode("utf-8"), end="")
-        except IOError:
-            print("Failed to find or read input file: {0}".format(
-                local_file), err=True)
-
-        return SUCCESS
-
-
-class scanCommand(Command):
-    """
-    Scan all available boards.
-    """
-    name = 'scan'
-    usage = """
-      %prog [options] <args> ..."""
-    summary = "Scan all available boards."
-
-    def __init__(self, *args, **kw):
-        super(scanCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-b', '--board',
-            dest='board',
-            action='store',
-            default="",
-            help='Scan the designated ardupy board.')
-
-        self.cmd_opts.add_option(
-            '-l', '--list',
-            dest='list',
-            action='store_true',
-            default=False,
-            help='List all available boards')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-
-        ser = SerialUtils()
-
-        if options.list == True:
-            print(ser.listBoard())
-            return SUCCESS
-
-        if options.board == "":
-            print(ser.listAvailableBoard())
-        else:
-            print(ser.listDesignatedBoard(options.board))
-
-        return SUCCESS
-
-
-class bvCommand(Command):
-    """
-    Show the firmware version of ArduPy Board. 
-    """
-    name = 'bv'
-    usage = """
-      %prog [options] ..."""
-    summary = "Show the firmware version of ArduPy Board. "
-
-    def __init__(self, *args, **kw):
-        super(bvCommand, self).__init__(*args, **kw)
-        self.cmd_opts.add_option(
-            '-p', '--port',
-            dest='port',
-            action='store',
-            default="",
-            help='The port of the ArduPy board.')
-
-        self.parser.insert_option_group(0, self.cmd_opts)
-
-    def run(self, options, args):
-        ser = SerialUtils()
-        if options.port == "":
-            port, desc, hwid, isbootloader = ser.getAvailableBoard()
-        else:
-            port = options.port
-
-        if port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
-            print("usage\n\r    aip run [-p, --port=<port>]")
-            return ERROR
-
-        _board = Pyboard(port)
-
-        print(_board.get_version())
-
-        return SUCCESS
+        

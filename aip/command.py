@@ -45,16 +45,7 @@ from pip._internal.cli.base_command import Command
 from aip.build import buildCommand
 from aip.install import installCommand
 from aip.flash import flashCommand
-from aip.shell import lsCommand
-from aip.shell import replCommand
-from aip.shell import getCommand
-from aip.shell import putCommand
-from aip.shell import mkdirCommand
-from aip.shell import rmCommand
-from aip.shell import rmdirCommand
-from aip.shell import runCommand
-from aip.shell import scanCommand
-from aip.shell import bvCommand
+from aip.shell import shellCommand
 import sys
 
 ###########
@@ -114,16 +105,7 @@ commands_order = [
     buildCommand,
     installCommand,
     flashCommand,
-    lsCommand,
-    replCommand,
-    getCommand,
-    putCommand,
-    mkdirCommand,
-    rmCommand,
-    rmdirCommand,
-    runCommand,
-    scanCommand,
-    bvCommand,
+    shellCommand
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}

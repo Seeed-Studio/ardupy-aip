@@ -93,7 +93,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return ("None","None","None",False)
+        return (None,None,None,False)
     
     def getAvailableBoard(self):
         for info in self.getAllPortInfo():
@@ -113,7 +113,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return ("None","None","None",False)
+        return (None,None,None,False)
     
     def listBoard(self):
         list = [];
@@ -163,7 +163,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return ("None","None","None",False)
+        return (None,None,None,False)
         
     def isBootloaderStatus(self):
 
