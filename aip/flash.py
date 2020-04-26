@@ -90,7 +90,7 @@ class flashCommand(RequirementCommand):
             self.port = port
 
         if self.port == "None":
-            print("\033[93mplease plug in a ArduPy Board!\033[0m")
+            log.warning("please plug in a ArduPy Board!")
             print("<usage>    aip run [-p, --port=<port>] [local_file]")
             return "echo not support"
 
@@ -108,7 +108,6 @@ class flashCommand(RequirementCommand):
         self.port = options.port
         bossacdir = str(Path(user_data_dir +"/ardupycore/Seeeduino/tools/bossac"))
 
-        print(str(bossacdir))
         if not os.path.exists(bossacdir):
             os.makedirs(bossacdir)
         session = self.get_default_session(options)
@@ -163,7 +162,7 @@ class flashCommand(RequirementCommand):
             if len(args) > 0:
                 ardupybin = args[0]
                 if not os.path.exists(ardupybin):
-                    print('\033[31m The path of firmware didn\'t exists!\033[0m')
+                    log.warning('The path of firmware didn\'t exists!')
                     return ERROR
             elif options.origin == True:
                 firmwaredir = str(Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_')))
@@ -183,7 +182,7 @@ class flashCommand(RequirementCommand):
             print((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
             os.system((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
         else:
-            print("\033[93mSorry, the device you should have is not plugged in.\033[0m")
+            log.warning("Sorry, the device you should have is not plugged in.")
             return ERROR
 
         return SUCCESS

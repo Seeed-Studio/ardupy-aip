@@ -23,48 +23,33 @@
 # THE SOFTWARE.
 
 #import inspect
+import logging
+import os.path
+import time
+from colorama import Fore, Style
+import sys
+ 
+ 
+class Logger(object):
+    def __init__(self, logger):
+        self.logger = logging.getLogger(name=logger)
+        self.logger.setLevel(logging.DEBUG)  # critical > error > warning > info > debug
 
-class Log(object):
+ 
+    def debug(self, msg):
+        self.logger.debug(Fore.WHITE + "DEBUG - " + str(msg) + Style.RESET_ALL)
+ 
+    def info(self, msg):
+        self.logger.info(Fore.GREEN + "INFO - " + str(msg) + Style.RESET_ALL)
+ 
+    def warning(self, msg):
+        self.logger.warning(Fore.YELLOW + "WARNING - " + str(msg) + Style.RESET_ALL)
+ 
+    def error(self, msg):
+        self.logger.error(Fore.RED + "ERROR - " + str(msg) + Style.RESET_ALL)
+ 
+    def critical(self, msg):
+        self.logger.critical(Fore.RED + "CRITICAL - " + str(msg) + Style.RESET_ALL)
 
-    str_error = '\033[31m{0}\033[0m' # red
-    str_tips = '\033[32m{0}\033[0m' # yellow
-    str_waring = '\033[33m{0}\033[0m' # yellow
-    str_info = '\033[34m{0}\033[0m' # blue
 
-    def __init__(self):
-        pass
-
-    def info(self, i):
-        str_info  = self.str_info.format(i)
-        print(str_info)
-    
-    def error(self, e):
-        str_error  = self.str_error.format(e)
-        print(str_error)
-    
-    def waring(self, w):
-        str_waring  = self.str_waring.format(w)
-        print(str_waring)
-    
-    def tips(self, t):
-        str_tips  = self.str_tips.format(t)
-        print(str_tips)
-    
-    def normal(self, n):
-        print(n)
-    
-    # def __line__ (self):
-    #     caller = inspect.stack()[1]
-    #     return int (caller[2])
-
-    # def __function__ (self):
-    #     caller = inspect.stack()[1]
-    #     return caller[3]
-
-    # def __header__(self):
-    #     header = ''
-    #     header += ' Function: ' + str(self.__function__ ())
-    #     header += ' Line: ' + str(self.__line__ ())
-    #     return header
-
-log = Log()
+log = Logger(logger="aip")

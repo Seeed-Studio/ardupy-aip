@@ -2,7 +2,7 @@
 from datetime import date
 from pip._internal.utils import appdirs
 from pathlib import Path
-from aip.log import log
+from aip.logger import log
 import os
 import stat
 import sys

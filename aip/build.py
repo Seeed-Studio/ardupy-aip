@@ -40,7 +40,7 @@ import os
 from aip.variable import *
 from tempfile import *
 from aip.utils import SerialUtils
-from aip.log import log
+from aip.logger import log
 import random
 import shutil
 import sys
@@ -221,7 +221,7 @@ const mp_obj_module_t mp_module_arduino = {
         gen_i_last = self.gcc + "-E -DARDUPY_MODULE -DNO_QSTR " + mp_generate_flag + " ".join(extern_mp_src) + \
             "  " + str(Path(user_data_dir+"/ardupycore/ArduPy/boards/"+self.board+"/mpconfigport.h")) + \
             " > " + str(Path(genhdr, "qstr.i.last"))
-        print(gen_i_last)
+        log.debug(gen_i_last)
         os.system(gen_i_last)
 
         import io
@@ -281,8 +281,8 @@ const mp_obj_module_t mp_module_arduino = {
             try:
                 os.makedirs(ardupycoredir)
             except OSError as error:
-                print("Directory '%s was exists' " % ardupycoredir)
-                print(error)
+                log.warning("Directory '%s was exists' " % ardupycoredir)
+                log.warning(error)
                 
             unpack_url(
                 link,
@@ -313,8 +313,8 @@ const mp_obj_module_t mp_module_arduino = {
             try:
                 shutil.rmtree(ardupycoredir)
             except OSError as error:
-                print("Directory '%s remove failed' " % ardupycoredir)
-                print(error)
+                log.warning("Directory '%s remove failed' " % ardupycoredir)
+                log.warning(error)
     def get_arduinocore_version(self):
         ardupycoredir = str(Path(user_data_dir+"/ardupycore/Seeeduino/hardware/samd"))
         self.arduinoCoreVersion = os.listdir(ardupycoredir)[0]
@@ -393,7 +393,7 @@ const mp_obj_module_t mp_module_arduino = {
             + str(Path(builddir + "/Ardupy")) + " " \
             + firmware_path
 
-        print(objcopy_cmd)
+        log.debug(objcopy_cmd)
         os.system(objcopy_cmd)
 
         # Print size information
@@ -404,8 +404,8 @@ const mp_obj_module_t mp_module_arduino = {
         shutil.rmtree(builddir)
 
         if os.path.exists(firmware_path):
-            log.tips('Firmware path: '+ firmware_path)
-            log.tips('Usage:\n\r    aip flash')
+            log.info('Firmware path: '+ firmware_path)
+            log.info('Usage:\n\r    aip flash')
         else:
             error = log.str_error.format('compile error')
             raise Exception(print(error))

@@ -42,7 +42,7 @@ import os
 import stat
 from aip.variable import *
 from aip.command import *
-from aip.log import log
+from aip.logger import log
 import shutil
 from pathlib import Path
 
@@ -129,14 +129,14 @@ class installCommand(RequirementCommand):
         downloader = Downloader(session, progress_bar="on")
         if options.uninstall == True:
             for package in args:
-                log.normal(package[package.find("/")+1:])
+                log.debug(package[package.find("/")+1:])
                 if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):
                     shutil.rmtree(
                         str(Path(moduledir, package[package.find("/") + 1:])), onerror=readonly_handler)
                 else:
                     log.waring(package[package.find("/") +1:] + " not exists!")
         elif options.list == True:
-            log.normal(os.listdir(moduledir))
+            print(os.listdir(moduledir))
         else:
             for package in args:
                 package_url = self.get_archive_url(options, package)
@@ -152,10 +152,10 @@ class installCommand(RequirementCommand):
                     os.makedirs(package_location)
                 except OSError as error:
                     log.error(error)
-                    log.tips("Use aip install -F Overwrite previous Library")
+                    log.info("Use aip install -F Overwrite previous Library")
                     return ERROR
 
-                log.tips("Downloading library......")
+                log.info("Downloading library......")
                 try:
                     unpack_url(
                         Link(package_url),
@@ -178,7 +178,7 @@ class installCommand(RequirementCommand):
                         package_json_dict = json.load(package_json)
                         dependencies = package_json_dict["dependencies"]
                         if len(dependencies) != 0:
-                            log.tips("Downloading dependencies......")
+                            log.info("Downloading dependencies......")
                         for dependency in dependencies:
                             dependency_url = self.get_archive_url(options, dependency["url"])
                             dependency_location = package_location + '/' + dependency["name"]

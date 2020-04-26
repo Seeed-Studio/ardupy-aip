@@ -32,7 +32,7 @@ from datetime import date, datetime
 from pathlib import Path
 import urllib.request
 import shutil
-from aip.log import Log
+from aip.logger import log
 
 from pip._internal.exceptions import PipError
 
@@ -40,9 +40,8 @@ from pip._internal.exceptions import PipError
 from pip._internal.utils import deprecation
 from pip._internal.cli.autocompletion import autocomplete
 import importlib
-#from aip.variable import *
 from pip._internal.utils import appdirs
-from aip.log import log
+
 
 def main(args=None):
 
@@ -67,7 +66,7 @@ def main(args=None):
                 break
 
     if is_update:
-        log.tips("update latest package_seeeduino_ardupy_index.json ...")
+        log.info("update latest package_seeeduino_ardupy_index.json ...")
         try:
             urllib.request.urlretrieve('https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json',
                                    str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")))
