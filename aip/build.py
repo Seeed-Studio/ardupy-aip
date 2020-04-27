@@ -408,8 +408,7 @@ const mp_obj_module_t mp_module_arduino = {
             log.info('Firmware path: '+ firmware_path)
             log.info('Usage:\n\r    aip flash')
         else:
-            error = log.str_error.format('compile error')
-            raise Exception(print(error))
+            raise Exception(print('compile error'))
             #return ERRO
       
         return SUCCESS

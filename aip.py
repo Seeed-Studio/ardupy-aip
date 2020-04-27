@@ -1,5 +1,9 @@
-import aip
+import sys
 
+from aip.main import main
 
-if __name__ == '__main__':
-    aip.main()
+try:
+    main()
+except Exception as e:
+    sys.stderr.write(str(e) + "\n")
+    exit(1)
