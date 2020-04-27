@@ -118,6 +118,13 @@ class shellCommand(Command):
             action='store_true',
             default=False,
             help="disable color")
+                
+        self.cmd_opts.add_option(
+            '--nohelp',
+            dest='nohelp',
+            action='store_true',
+            default=False,
+            help="disable help")
         
         self.cmd_opts.add_option(
             '--nocache',
@@ -186,7 +193,7 @@ class shellCommand(Command):
         else:
             logging.basicConfig(format=format, level=logging.CRITICAL)
         
-        mpfs = mpf.MpFileShell(not options.nocolor, not options.nocache, options.reset)
+        mpfs = mpf.MpFileShell(not options.nocolor, not options.nocache, options.reset, options.nohelp)
 
         if options.open is not None:
             if board is None:

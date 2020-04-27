@@ -16,7 +16,7 @@ requirements = [
     'demjson',
     'pip > 20.0.0',
     'pyserial',
-    'mpfshell'
+    'mpfshell-lite'
 ]
 
 setup_requirements = [
