@@ -16,6 +16,7 @@ requirements = [
     'demjson',
     'pip > 20.0.0',
     'pyserial',
+    'colorama',
     'mpfshell-lite'
 ]
 
