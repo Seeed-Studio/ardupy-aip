@@ -279,7 +279,8 @@ const mp_obj_module_t mp_module_arduino = {
         ardupycoredir = user_data_dir+"/ardupycore"
         if not os.path.exists(ardupycoredir + "/ArduPy"):
             try:
-                os.makedirs(ardupycoredir)
+                if not os.path.exists(ardupycoredir):
+                    os.makedirs(ardupycoredir)
             except OSError as error:
                 log.warning("Directory '%s was exists' " % ardupycoredir)
                 log.warning(error)

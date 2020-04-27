@@ -40,7 +40,7 @@ setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'aip=aip.__init__:main'
+            'aip=aip.main:main'
         ],
     },
     license="MIT License",
