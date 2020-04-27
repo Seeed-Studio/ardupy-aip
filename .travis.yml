@@ -4,14 +4,6 @@ global:
 before_install:
   - sudo apt-get install --reinstall python3-pip
   - python3 -m pip install
-  - sudo apt-get install python3-setuptools
-  - wget https://github.com/libgit2/libgit2/releases/download/v1.0.0/libgit2-1.0.0.tar.gz
-  - tar xzf libgit2-1.0.0.tar.gz
-  - cd libgit2-1.0.0/
-  - cmake .
-  - make
-  - sudo make install
-  - sudo ldconfig
   - cd ~
   - git clone https://github.com/Seeed-Studio/ardupy-aip
   - pip3 install pip
@@ -22,6 +14,7 @@ install:
 
 script: 
   - aip help
+  - aip build
   
 notifications:
   webhooks:
