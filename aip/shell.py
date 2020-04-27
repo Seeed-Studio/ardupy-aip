@@ -62,8 +62,6 @@ from pip._internal.operations.prepare import (
 
 import os
 import sys
-from pygit2 import clone_repository
-from pygit2 import Repository
 from aip.variable import *
 from mp import version
 import serial
