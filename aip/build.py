@@ -316,9 +316,12 @@ const mp_obj_module_t mp_module_arduino = {
             except OSError as error:
                 log.warning("Directory '%s remove failed' " % ardupycoredir)
                 log.warning(error)
+                
     def get_arduinocore_version(self):
         ardupycoredir = str(Path(user_data_dir+"/ardupycore/Seeeduino/hardware/samd"))
-        self.arduinoCoreVersion = os.listdir(ardupycoredir)[0]
+        for file in os.listdir(ardupycoredir):
+            if len(file.split('.')) == 3:
+                self.arduinoCoreVersion = file
 
     def run(self, options, args):
         
