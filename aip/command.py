@@ -46,6 +46,7 @@ from aip.build import buildCommand
 from aip.install import installCommand
 from aip.flash import flashCommand
 from aip.shell import shellCommand
+from aip.board import boardCommand
 import sys
 
 ###########
@@ -105,6 +106,7 @@ commands_order = [
     buildCommand,
     installCommand,
     flashCommand,
+    boardCommand,
     shellCommand
 ]  # type: List[Type[Command]]
 

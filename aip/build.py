@@ -50,7 +50,7 @@ import re
 
 class buildCommand(RequirementCommand):
     """
-    Build ArduPy Firmware 
+    Build ArduPy Firmware contains the libraries you installed and the basic ArduPy features.
     """
     name = 'build'
     usage = """

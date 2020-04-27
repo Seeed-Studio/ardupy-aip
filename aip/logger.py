@@ -37,19 +37,19 @@ class Logger(object):
 
  
     def debug(self, msg):
-        self.logger.debug(Fore.WHITE + "DEBUG - " + str(msg) + Style.RESET_ALL)
+        self.logger.debug(Fore.WHITE + str(msg) + Style.RESET_ALL)
  
     def info(self, msg):
-        self.logger.info(Fore.GREEN + "INFO - " + str(msg) + Style.RESET_ALL)
+        self.logger.info(Fore.GREEN + str(msg) + Style.RESET_ALL)
  
     def warning(self, msg):
-        self.logger.warning(Fore.YELLOW + "WARNING - " + str(msg) + Style.RESET_ALL)
+        self.logger.warning(Fore.YELLOW + str(msg) + Style.RESET_ALL)
  
     def error(self, msg):
-        self.logger.error(Fore.RED + "ERROR - " + str(msg) + Style.RESET_ALL)
+        self.logger.error(Fore.RED + str(msg) + Style.RESET_ALL)
  
     def critical(self, msg):
-        self.logger.critical(Fore.RED + "CRITICAL - " + str(msg) + Style.RESET_ALL)
+        self.logger.critical(Fore.RED + str(msg) + Style.RESET_ALL)
 
 
 log = Logger(logger="aip")
