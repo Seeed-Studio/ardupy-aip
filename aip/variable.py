@@ -68,7 +68,12 @@ ardupycore_headers = ["/ardupycore/ArduPy",
 board_headers = "/ardupycore/ArduPy/boards/"
 
 
-grove_ui_flashParam = " -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R "
+
+flash_param = { 
+    'wio_terminal': ' -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R ',
+    'XIAO' :  ' -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R '
+}
+
 
 # {0}: ardupy  path
 # {1}: ardupy board path
@@ -86,8 +91,6 @@ micropython_CFLAGS = "-I. \
         -U_FORTIFY_SOURCE \
         -Os \
         "
-
-
 
 def readonly_handler(func, path, execinfo):
     os.chmod(path, stat.S_IWRITE)

@@ -179,8 +179,9 @@ class flashCommand(RequirementCommand):
             else:
                 ardupybin = str(Path(user_data_dir +"/deploy/Ardupy.bin"))
 
-            print((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
-            os.system((str(bossac) + grove_ui_flashParam) % (port,  ardupybin))
+            _flash_parm = flash_param[name.replace(' ', '_')];
+            print((str(bossac) + _flash_parm) % (port,  ardupybin))
+            os.system((str(bossac) + _flash_parm) % (port,  ardupybin))
         else:
             log.warning("Sorry, the device you should have is not plugged in.")
             return ERROR

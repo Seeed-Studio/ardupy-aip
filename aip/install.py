@@ -155,6 +155,9 @@ class installCommand(RequirementCommand):
                     log.info("Use aip install -F Overwrite previous Library")
                     return ERROR
 
+                from pip._vendor.requests.utils import DEFAULT_CA_BUNDLE_PATH
+                print(DEFAULT_CA_BUNDLE_PATH)
+
                 log.info("Downloading library......")
                 try:
                     unpack_url(

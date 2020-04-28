@@ -39,8 +39,8 @@ from pip._internal.cli.autocompletion import autocomplete
 import importlib
 from pip._internal.utils import appdirs
 
-
 def main(args=None):
+
      # type: (Optional[List[str]]) -> int
     if args is None:
         args = sys.argv[1:]
