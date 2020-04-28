@@ -48,6 +48,7 @@ from aip.install import installCommand
 from aip.flash import flashCommand
 from aip.shell import shellCommand
 from aip.board import boardCommand
+from aip.list import listCommand
 from aip import __version__
 
 import sys
@@ -114,6 +115,7 @@ class HelpCommand(Command):
 
 commands_order = [
     buildCommand,
+    listCommand,
     installCommand,
     flashCommand,
     boardCommand,

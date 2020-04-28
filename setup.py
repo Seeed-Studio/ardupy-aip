@@ -30,7 +30,7 @@ test_requirements = [
 
 setup(
     name='aip',
-    version='0.3.0',
+    version='0.4.0',
     description="Ardupy library package manager",
     long_description=README,
     author="Baozhu Zuo",
