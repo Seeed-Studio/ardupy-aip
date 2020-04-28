@@ -37,8 +37,9 @@ from pip._internal.exceptions import PipError
 from pip._internal.exceptions import CommandError
 
 
-from pip._internal.utils.misc import get_pip_version, get_prog
+from pip._internal.utils.misc import get_prog
 from optparse import SUPPRESS_HELP, Option, OptionGroup
+from pip._internal.locations import get_major_minor_version
 
 from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli.base_command import Command
@@ -47,7 +48,10 @@ from aip.install import installCommand
 from aip.flash import flashCommand
 from aip.shell import shellCommand
 from aip.board import boardCommand
+from aip import __version__
+
 import sys
+import os
 
 ###########
 # options #
@@ -61,14 +65,21 @@ help_ = partial(
     help='Show help.',
 )  # type: Callable[..., Option]
 
+version = partial(
+    Option,
+    '-V', '--version',
+    dest='version',
+    action='store_true',
+    help='Show version and exit.',
+)  # type: Callable[..., Option]
 
 general_group = {
     'name': 'General Options',
     'options': [
         help_,
+        version,
     ]
 }  # type: Dict[str, Any]
-
 
 class HelpCommand(Command):
     """Show help for commands"""
@@ -102,16 +113,26 @@ class HelpCommand(Command):
 
 
 commands_order = [
-    HelpCommand,
     buildCommand,
     installCommand,
     flashCommand,
     boardCommand,
-    shellCommand
+    shellCommand,
+    HelpCommand,
 ]  # type: List[Type[Command]]
 
 commands_dict = {c.name: c for c in commands_order}
 
+def get_aip_version():
+    # type: () -> str
+    aip_pkg_dir = os.path.join(os.path.dirname(__file__), "..")
+    aip_pkg_dir = os.path.abspath(aip_pkg_dir)
+
+    return (
+        'pip {} from {} (python {})'.format(
+            __version__, aip_pkg_dir, get_major_minor_version(),
+        )
+    )
 
 def create_main_parser():
     # type: () -> ConfigOptionParser
@@ -129,7 +150,7 @@ def create_main_parser():
     parser = ConfigOptionParser(**parser_kw)
     parser.disable_interspersed_args()
 
-    parser.version = get_pip_version()
+    parser.version = get_aip_version()
 
     # add the general options
     gen_opts = cmdoptions.make_option_group(general_group, parser)
@@ -162,11 +183,11 @@ def parse_command(args):
     general_options, args_else = parser.parse_args(args)
 
     # --version
-    # if general_options.version:
-    #     sys.stdout.write(parser.version)  # type: ignore
-    #     sys.stdout.write(os.linesep)
-    #     sys.exit()
-
+    if general_options.version:
+        sys.stdout.write(parser.version)  # type: ignore
+        sys.stdout.write(os.linesep)
+        sys.exit()
+  
     # pip || pip help -> print_help()
     if not args_else or (args_else[0] == 'help' and len(args_else) == 1):
         parser.print_help()
