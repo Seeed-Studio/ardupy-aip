@@ -49,6 +49,7 @@ from aip.flash import flashCommand
 from aip.shell import shellCommand
 from aip.board import boardCommand
 from aip.list import listCommand
+from aip.uninstall import uninstallCommand
 from aip import __version__
 
 import sys
@@ -117,6 +118,7 @@ commands_order = [
     buildCommand,
     listCommand,
     installCommand,
+    uninstallCommand,
     flashCommand,
     boardCommand,
     shellCommand,
@@ -126,19 +128,17 @@ commands_order = [
 commands_dict = {c.name: c for c in commands_order}
 
 def get_aip_version():
-    # type: () -> str
-    aip_pkg_dir = os.path.join(os.path.dirname(__file__), "..")
-    aip_pkg_dir = os.path.abspath(aip_pkg_dir)
+    version = 'aip ({}) - ArduPy Integrated Platform is a utility to develop ArduPy and interact witch ArduPy board.'
 
     return (
-        'pip {} from {} (python {})'.format(
-            __version__, aip_pkg_dir, get_major_minor_version(),
+        version.format(
+            __version__,
         )
     )
 
 def create_main_parser():
     # type: () -> ConfigOptionParser
-    """Creates and returns the main parser for pip's CLI
+    """Creates and returns the main parser for aip's CLI
     """
 
     parser_kw = {

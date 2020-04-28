@@ -30,19 +30,12 @@ from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
-from pip._internal.commands.list import tabulate
 from urllib.parse import urlparse
 
 from pip._internal.operations.prepare import (
     _copy_source_tree,
     _download_http_url,
     unpack_url,
-)
-
-from pip._internal.utils.misc import (
-    dist_is_editable,
-    get_installed_distributions,
-    write_output,
 )
 
 import os
@@ -53,52 +46,33 @@ from aip.logger import log
 import shutil
 from pathlib import Path
 
-class listCommand(Command):
+class uninstallCommand(Command):
     """
-    List installed ArduPy Libraries.
-
-    Libraries are listed in a case-insensitive sorted order.
+    Uninstall ArduPy Library.
     """
-    name = 'list'
+    name = 'uninstall'
     usage = """
       %prog [options] <args> ..."""
-    summary = "List installed ArduPy Libraries."
+    summary = "Uninstall ArduPy Library."
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
-        super(listCommand, self).__init__(*args, **kw)
-
-
-    def output_package_listing_columns(self, data, header):
-        # insert the header first: we need to know the size of column names
-        if len(data) > 0:
-            data.insert(0, header)
-
-        pkg_strings, sizes = tabulate(data)
-
-        # Create and add a separator.
-        if len(data) > 0:
-            pkg_strings.insert(1, " ".join(map(lambda x: '-' * x, sizes)))
-
-        for val in pkg_strings:
-            write_output(val)
-
+        super(uninstallCommand, self).__init__(*args, **kw)
+        pass
+          
     def run(self, options, args):
-        header = ["Package", "Version", "Location"]
         moduledir = Path(user_data_dir, "modules")
-        libs = []
-
-        for library in os.listdir(moduledir):
-            library_json_location = str(Path(moduledir,library,'library.json'))
-            try:
-                with open(library_json_location, 'r') as package_json:
-                    package_json_dict = json.load(package_json)
-                    lib = [library, package_json_dict['version'], package_json_dict['repository']['url']]
-            except Exception as e:
-                pass
-            libs.append(lib)
-        if len(libs) >= 1:
-            self.output_package_listing_columns(libs, header)
+        for package in args:
+                log.debug(package[package.find("/")+1:])
+                if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):
+                    shutil.rmtree(
+                        str(Path(moduledir, package[package.find("/") + 1:])), onerror=readonly_handler)
+                else:
+                    log.warning(package[package.find("/") +1:] + " not exists!")
+        
         return SUCCESS
+
+
+
 
 
