@@ -3,4 +3,4 @@ pyserial
 demjson
 pip > 20.0.0
 colorama
-mpfshell-lite
+ardupy-mpfshell

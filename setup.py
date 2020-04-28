@@ -4,10 +4,11 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+from aip import __version__
 
 README = \
 '''
-Ardupy library package manager
+ArduPy Integrated Platform
 '''
 
 
@@ -17,7 +18,7 @@ requirements = [
     'pip > 20.0.0',
     'pyserial',
     'colorama',
-    'mpfshell-lite'
+    'ardupy-mpfshell'
 ]
 
 setup_requirements = [
@@ -29,14 +30,15 @@ test_requirements = [
 ]
 
 setup(
-    name='aip',
-    version='0.4.0',
-    description="Ardupy library package manager",
+    name='ardupy-aip',
+    version=__version__,
+    description="ArduPy Integrated Platform",
     long_description=README,
     author="Baozhu Zuo",
     author_email='zuobaozhu@gmail.com',
-    url='https://github.com/seeed-studio/aip',
+    url='https://github.com/seeed-studio/ardupy-aip',
     packages=find_packages(include=['aip']),
+    scripts=['ardupy-aip'],
     include_package_data=True,
     install_requires=requirements,
     entry_points={
