@@ -105,7 +105,7 @@ class boardCommand(Command):
                 com.timeout = 1
                 com.writeTimeout = 1
                 com.write(b"\x03")
-                time.sleep(0.05)
+                time.sleep(1)
                 com.write(b"\x02")
                 time.sleep(0.05)
                 lines = com.read(100)
@@ -120,6 +120,7 @@ class boardCommand(Command):
     def get_version(self):
 
         buf = self.board_halt()
+        #print(buf)
         ver = ""
         try:
             tmp = str(buf, "utf-8")
