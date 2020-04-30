@@ -31,6 +31,8 @@ import json
 from datetime import date, datetime
 from pathlib import Path
 import urllib.request
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 import shutil
 from aip.logger import log
 from pip._internal.exceptions import PipError

@@ -93,7 +93,7 @@ class shellCommand(Command):
             dest='command',
             action='store',
             default=None,
-            help='Texecute given commands (separated by ;)')
+            help='Execute given commands (separated by ;)')
 
         self.cmd_opts.add_option(
             '-s', 
@@ -101,7 +101,7 @@ class shellCommand(Command):
             dest='script',
             action='store',
             default=None,
-            help='execute commands from file')
+            help='Execute commands from file')
 
         self.cmd_opts.add_option(
             '-n', 
@@ -109,47 +109,47 @@ class shellCommand(Command):
             dest='noninteractive',
             action='store_true',
             default=False,
-            help="non interactive mode (don't enter shell)")
+            help="Non interactive mode (don't enter shell)")
         
         self.cmd_opts.add_option(
             '--nocolor',
             dest='nocolor',
             action='store_true',
             default=False,
-            help="disable color")
+            help="Disable color")
                 
         self.cmd_opts.add_option(
             '--nohelp',
             dest='nohelp',
             action='store_true',
             default=False,
-            help="disable help")
+            help="Disable help")
         
         self.cmd_opts.add_option(
             '--nocache',
             dest='nocache',
             action='store_true',
             default=False,
-            help="disable nocache")
+            help="Disable nocache")
         
         self.cmd_opts.add_option(
             "--logfile",
             dest="logfile",
             default=None,
-            help="write log to file")
+            help="Write log to file")
              
         self.cmd_opts.add_option(
             '--loglevel',
             dest='loglevel',
             action='store',
             default="INFO",
-            help="loglevel (CRITICAL, ERROR, WARNING, INFO, DEBUG)")
+            help="Loglevel (CRITICAL, ERROR, WARNING, INFO, DEBUG)")
         
         self.cmd_opts.add_option(
             "--reset",
             action="store_true",
             default=False,
-            help="hard reset device via DTR (serial connection only)"
+            help="Hard reset device via DTR (serial connection only)"
             )
         
         self.cmd_opts.add_option(
@@ -158,7 +158,7 @@ class shellCommand(Command):
             dest="open",
             action="store",
             default=None,
-            help="directly opens board",
+            help="Directly opens board",
         )
 
         self.cmd_opts.add_option(
