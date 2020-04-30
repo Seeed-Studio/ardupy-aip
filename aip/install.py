@@ -33,7 +33,6 @@ from pip._internal.models.link import Link
 from urllib.parse import urlparse
 
 from pip._internal.operations.prepare import (
-    _copy_source_tree,
     _download_http_url,
     unpack_url,
 )
@@ -109,7 +108,7 @@ class installCommand(RequirementCommand):
             return package_url
           
     def run(self, options, args):
-        moduledir = Path(user_data_dir, "modules")
+        moduledir = Path(user_config_dir, "modules")
         session = self.get_default_session(options)
         downloader = Downloader(session, progress_bar="on")
         for package in args:
@@ -128,9 +127,6 @@ class installCommand(RequirementCommand):
                 log.error(error)
                 log.info("Use aip install -F Overwrite previous Library")
                 return ERROR
-
-            from pip._vendor.requests.utils import DEFAULT_CA_BUNDLE_PATH
-            print(DEFAULT_CA_BUNDLE_PATH)
 
             log.info("Downloading library......")
             try:

@@ -33,10 +33,8 @@ from pip._internal.models.link import Link
 
 
 from pip._internal.operations.prepare import (
-    _copy_source_tree,
     _download_http_url,
     unpack_url,
-    unpack_file_url
 )
 import os
 import sys
@@ -106,7 +104,7 @@ class flashCommand(RequirementCommand):
     def run(self, options, args):
 
         self.port = options.port
-        bossacdir = str(Path(user_data_dir +"/ardupycore/Seeeduino/tools/bossac"))
+        bossacdir = str(Path(user_config_dir +"/ardupycore/Seeeduino/tools/bossac"))
 
         if not os.path.exists(bossacdir):
             os.makedirs(bossacdir)
@@ -165,7 +163,7 @@ class flashCommand(RequirementCommand):
                     log.warning('The path of firmware didn\'t exists!')
                     return ERROR
             elif options.origin == True:
-                firmwaredir = str(Path(user_data_dir +"/deploy/firmware/"+name.replace(' ', '_')))
+                firmwaredir = str(Path(user_config_dir +"/deploy/firmware/"+name.replace(' ', '_')))
                 if not os.path.exists(firmwaredir):
                     os.makedirs(firmwaredir)
                 ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
@@ -177,7 +175,7 @@ class flashCommand(RequirementCommand):
                         temp_dir=firmwaredir,
                         hashes=None)
             else:
-                ardupybin = str(Path(user_data_dir +"/deploy/Ardupy.bin"))
+                ardupybin = str(Path(user_config_dir +"/deploy/Ardupy.bin"))
 
             _flash_parm = flash_param[name.replace(' ', '_')];
             print((str(bossac) + _flash_parm) % (port,  ardupybin))

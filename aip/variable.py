@@ -98,18 +98,18 @@ def readonly_handler(func, path, execinfo):
 
 # List of supported board USB IDs.  Each board is a tuple of unique USB vendor
 # ID, USB product ID.
-user_data_dir = appdirs.user_data_dir(appname="aip")
+user_config_dir = appdirs.user_config_dir(appname="aip")
 today = date.today()
-package_seeeduino_ardupy_index_json = str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json"))
+package_seeeduino_ardupy_index_json = str(Path(user_config_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json"))
 if os.path.exists(package_seeeduino_ardupy_index_json):
     with open(package_seeeduino_ardupy_index_json, 'r') as load_f:
         json_dict = json.load(load_f)
         BOARD_IDS = json_dict['board']
 else:
     try:
-        for file in os.listdir(user_data_dir):
+        for file in os.listdir(user_config_dir):
             if "package_seeeduino_ardupy_index_" in file:
-                package_seeeduino_ardupy_index_json = str(Path(user_data_dir, file))
+                package_seeeduino_ardupy_index_json = str(Path(user_config_dir, file))
                 with open(package_seeeduino_ardupy_index_json, 'r') as load_f:
                     json_dict = json.load(load_f)
                     BOARD_IDS = json_dict['board']

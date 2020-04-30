@@ -1,6 +1,6 @@
 pyusb
 pyserial
 demjson
-pip > 20.0.0
 colorama
 ardupy-mpfshell
+pip >= 20.1

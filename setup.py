@@ -15,10 +15,10 @@ ArduPy Integrated Platform
 requirements = [
     'pyusb',
     'demjson',
-    'pip > 20.0.0',
     'pyserial',
     'colorama',
-    'ardupy-mpfshell'
+    'ardupy-mpfshell',
+    'pip >= 20.1'
 ]
 
 setup_requirements = [

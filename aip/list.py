@@ -34,7 +34,6 @@ from pip._internal.commands.list import tabulate
 from urllib.parse import urlparse
 
 from pip._internal.operations.prepare import (
-    _copy_source_tree,
     _download_http_url,
     unpack_url,
 )
@@ -85,7 +84,7 @@ class listCommand(Command):
 
     def run(self, options, args):
         header = ["Package", "Version", "Location"]
-        moduledir = Path(user_data_dir, "modules")
+        moduledir = Path(user_config_dir, "modules")
         libs = []
 
         for library in os.listdir(moduledir):

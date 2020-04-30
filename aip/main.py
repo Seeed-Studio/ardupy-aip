@@ -46,14 +46,14 @@ def main(args=None):
         args = sys.argv[1:]
 
     # is update package_seeeduino_ardupy_index.json
-    user_data_dir = str(appdirs.user_data_dir(appname="aip"))
-    if not os.path.exists(user_data_dir):
-        os.makedirs(user_data_dir)
+    user_config_dir = str(appdirs.user_config_dir(appname="aip"))
+    if not os.path.exists(user_config_dir):
+        os.makedirs(user_config_dir)
     today = date.today()
-    user_data_dir_files = os.listdir(user_data_dir)
+    user_config_dir_files = os.listdir(user_config_dir)
     current_package_seeeduino_ardupy = "xxxxx"
     is_update = True
-    for files in user_data_dir_files:
+    for files in user_config_dir_files:
         if files[0:30] == "package_seeeduino_ardupy_index":
             file_data = datetime.strptime(files[31:41], '%Y-%m-%d').date()
             current_package_seeeduino_ardupy = files
@@ -64,9 +64,9 @@ def main(args=None):
         log.info("update latest package_seeeduino_ardupy_index.json ...")
         try:
             urllib.request.urlretrieve('https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json',
-                                   str(Path(user_data_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")))
-            if os.path.exists(str(Path(user_data_dir, current_package_seeeduino_ardupy))):
-                os.remove(str(Path(user_data_dir, current_package_seeeduino_ardupy)))
+                                   str(Path(user_config_dir, "package_seeeduino_ardupy_index_" + today.isoformat() + ".json")))
+            if os.path.exists(str(Path(user_config_dir, current_package_seeeduino_ardupy))):
+                os.remove(str(Path(user_config_dir, current_package_seeeduino_ardupy)))
         except Exception as e:
             log.error(e)
             log.warning("update latest package_seeeduino_ardupy_index.json Failed! Please check you network connction!")

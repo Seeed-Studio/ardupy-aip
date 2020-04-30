@@ -33,7 +33,6 @@ from pip._internal.models.link import Link
 from urllib.parse import urlparse
 
 from pip._internal.operations.prepare import (
-    _copy_source_tree,
     _download_http_url,
     unpack_url,
 )
@@ -61,7 +60,7 @@ class uninstallCommand(Command):
         pass
           
     def run(self, options, args):
-        moduledir = Path(user_data_dir, "modules")
+        moduledir = Path(user_config_dir, "modules")
         for package in args:
                 log.debug(package[package.find("/")+1:])
                 if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):

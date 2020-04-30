@@ -32,7 +32,6 @@ from pip._internal.models.link import Link
 import shutil
 
 from pip._internal.operations.prepare import (
-    _copy_source_tree,
     _download_http_url,
     unpack_url,
 )
@@ -87,8 +86,8 @@ class buildCommand(RequirementCommand):
         self.header = ""
         self.board = "wio_terminal"
         self.arduinoCoreVersion = "1.7.1"
-        self.gcc = str(Path(user_data_dir+gcc_48))
-        self.cpp = str(Path(user_data_dir+cpp_48))
+        self.gcc = str(Path(user_config_dir+gcc_48))
+        self.cpp = str(Path(user_config_dir+cpp_48))
         self.headerlist = []
 
     def endWith(self, s, *endstring):
@@ -136,7 +135,7 @@ class buildCommand(RequirementCommand):
                 output_o.append(out)
                 os.system(cmd)
 
-        gcc_ld_flag = grove_ui_gcc_ld_flag.format(user_data_dir+"/ardupycore", " ".join(
+        gcc_ld_flag = grove_ui_gcc_ld_flag.format(user_config_dir+"/ardupycore", " ".join(
             output_o), outputdir, self.board).replace("                        ", "")
         print(self.gcc+gcc_ld_flag)
         os.system(self.gcc+gcc_ld_flag)
@@ -189,7 +188,7 @@ const mp_obj_module_t mp_module_arduino = {
 
     def generatedQstrdefs(self, outputdir):
         sys.path.append(
-            str(Path(user_data_dir+"/ardupycore/ArduPy/MicroPython/py")))
+            str(Path(user_config_dir+"/ardupycore/ArduPy/MicroPython/py")))
         # import makemoduledefs
         import makeqstrdata
         import makeqstrdefs
@@ -200,12 +199,12 @@ const mp_obj_module_t mp_module_arduino = {
 
         # makeversionhdr.make_version_header(str(Path(genhdr,"mpversion.h")))
         shutil.copyfile(str(Path(
-            user_data_dir+"/ardupycore/Seeeduino/tools/genhdr/mpversion.h")), str(Path(genhdr, "mpversion.h")))
-        shutil.copyfile(str(Path(user_data_dir+"/ardupycore/Seeeduino/tools/genhdr/moduledefs.h")),
+            user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/mpversion.h")), str(Path(genhdr, "mpversion.h")))
+        shutil.copyfile(str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/moduledefs.h")),
                         str(Path(genhdr, "moduledefs.h")))
 
-        mp_generate_flag = micropython_CFLAGS.format(str(Path(user_data_dir+"/ardupycore/ArduPy")),
-                                                     str(Path(user_data_dir+"/ardupycore/ArduPy/boards/"+self.board)))
+        mp_generate_flag = micropython_CFLAGS.format(str(Path(user_config_dir+"/ardupycore/ArduPy")),
+                                                     str(Path(user_config_dir+"/ardupycore/ArduPy/boards/"+self.board)))
 
         # remove cpp files
         # todo； only scan file start wirh "mod_ardupy_"
@@ -219,7 +218,7 @@ const mp_obj_module_t mp_module_arduino = {
             extern_mp_src.append(f)
 
         gen_i_last = self.gcc + "-E -DARDUPY_MODULE -DNO_QSTR " + mp_generate_flag + " ".join(extern_mp_src) + \
-            "  " + str(Path(user_data_dir+"/ardupycore/ArduPy/boards/"+self.board+"/mpconfigport.h")) + \
+            "  " + str(Path(user_config_dir+"/ardupycore/ArduPy/boards/"+self.board+"/mpconfigport.h")) + \
             " > " + str(Path(genhdr, "qstr.i.last"))
         log.debug(gen_i_last)
         os.system(gen_i_last)
@@ -242,7 +241,7 @@ const mp_obj_module_t mp_module_arduino = {
             makeqstrdefs.process_file(infile)
 
         makeqstrdefs.cat_together()
-        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_data_dir+"/ardupycore/Seeeduino/tools/genhdr/qstrdefs.preprocessed.h")),
+        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/qstrdefs.preprocessed.h")),
                                                          str(Path(genhdr, "qstrdefs.collected.h"))])
 
         qstrdefs_generated_h = open(str(Path(genhdr, "qstrdefs.generated.h")), "w")
@@ -276,7 +275,7 @@ const mp_obj_module_t mp_module_arduino = {
     def downloadAll(self, session):
         link = Link("http://files.seeedstudio.com/ardupy/ardupy-core.zip")
         downloader = Downloader(session, progress_bar="on")
-        ardupycoredir = user_data_dir+"/ardupycore"
+        ardupycoredir = user_config_dir+"/ardupycore"
         if not os.path.exists(ardupycoredir + "/ArduPy"):
             try:
                 if not os.path.exists(ardupycoredir):
@@ -309,7 +308,7 @@ const mp_obj_module_t mp_module_arduino = {
             )
 
     def clean(self):
-        ardupycoredir = user_data_dir+"/ardupycore/ArduPy"
+        ardupycoredir = user_config_dir+"/ardupycore/ArduPy"
         if os.path.exists(ardupycoredir):
             try:
                 shutil.rmtree(ardupycoredir)
@@ -318,7 +317,7 @@ const mp_obj_module_t mp_module_arduino = {
                 log.warning(error)
                 
     def get_arduinocore_version(self):
-        ardupycoredir = str(Path(user_data_dir+"/ardupycore/Seeeduino/hardware/samd"))
+        ardupycoredir = str(Path(user_config_dir+"/ardupycore/Seeeduino/hardware/samd"))
         for file in os.listdir(ardupycoredir):
             if len(file.split('.')) == 3:
                 self.arduinoCoreVersion = file
@@ -340,7 +339,7 @@ const mp_obj_module_t mp_module_arduino = {
         session = self.get_default_session(options)
         
         # setup deploy dir
-        deploydir = str(Path(user_data_dir, "deploy"))
+        deploydir = str(Path(user_config_dir, "deploy"))
         if not os.path.exists(deploydir):
             os.makedirs(deploydir)
         # create build dir, This folder will be deleted after compilation
@@ -354,28 +353,28 @@ const mp_obj_module_t mp_module_arduino = {
             # add Arduino Core version
             if h[0:35] == "/ardupycore/Seeeduino/hardware/samd":
                 h = h.format(self.arduinoCoreVersion)
-            self.headerlist.append(str(Path(user_data_dir+h)))
+            self.headerlist.append(str(Path(user_config_dir+h)))
         self.headerlist.append(
-            str(Path(user_data_dir+board_headers+self.board)))
+            str(Path(user_config_dir+board_headers+self.board)))
 
         # setup ardupy modules dir
-        moduledir = str(Path(user_data_dir, "modules"))
+        moduledir = str(Path(user_config_dir, "modules"))
         if not os.path.exists(moduledir):
             os.makedirs(moduledir)
         modules = os.listdir(moduledir)
         if modules:
             for m in modules:
                 # Gets the source files for all modules
-                for f in self.fileEndWith(os.path.join(user_data_dir+"/modules/", m), '.cpp', '.c'):
+                for f in self.fileEndWith(os.path.join(user_config_dir+"/modules/", m), '.cpp', '.c'):
                     self.srcfile.append(str(Path(f)))
                 # Sets the root directory of the module to be where the header file is found
-                for r, d, f in os.walk(str(Path(user_data_dir+"/modules/" + m))):
+                for r, d, f in os.walk(str(Path(user_config_dir+"/modules/" + m))):
                     if r.find('.git') == -1 and r.find("examples") == -1:
                         self.headerlist.append(r)
 
         # Convert the necessary files in ardupycore into the absolute path of the system.
         for mp_file in mp_needful_file:
-            self.srcfile.append(str(Path(user_data_dir+mp_file)))
+            self.srcfile.append(str(Path(user_config_dir+mp_file)))
 
         self.generatedInitfile(builddir)
 
@@ -393,7 +392,7 @@ const mp_obj_module_t mp_module_arduino = {
             os.remove(firmware_path)
 
         # Convert ELF files to binary files
-        objcopy_cmd = str(Path(user_data_dir + gcc_48_objcopy)) + "-O binary " \
+        objcopy_cmd = str(Path(user_config_dir + gcc_48_objcopy)) + "-O binary " \
             + str(Path(builddir + "/Ardupy")) + " " \
             + firmware_path
 
@@ -401,7 +400,7 @@ const mp_obj_module_t mp_module_arduino = {
         os.system(objcopy_cmd)
 
         # Print size information
-        os.system(str(Path(user_data_dir + gcc_48_size)) +
+        os.system(str(Path(user_config_dir + gcc_48_size)) +
                   " -A " + str(Path(builddir + "/Ardupy")))
 
         # delete build dir
