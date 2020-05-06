@@ -139,7 +139,7 @@ class flashCommand(RequirementCommand):
                     log.warning('The path of firmware didn\'t exists!')
                     return ERROR
             elif options.origin == True:
-                firmwaredir = str(Path(user_config_dir +"/deploy/firmware/"+name.replace(' ', '_')))
+                firmwaredir = str(Path(parser.user_config_dir +"/deploy/firmware/"+name.replace(' ', '_')))
                 if not os.path.exists(firmwaredir):
                     os.makedirs(firmwaredir)
                 ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
@@ -152,7 +152,7 @@ class flashCommand(RequirementCommand):
                         hashes=None)
             else:
                 ardupybin = str(Path(parser.user_config_dir +"/deploy/Ardupy.bin"))
-                
+
         else:
             log.warning("Sorry, the device you should have is not plugged in.")
             return ERROR

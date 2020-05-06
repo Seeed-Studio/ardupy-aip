@@ -240,6 +240,8 @@ class Parser(object):
                         if _tools['name'] == _toolsDependencies['name'] and _tools['version'] == _toolsDependencies['version']:
                             for _system in _tools['systems']:
                                 if _system['host'] == self.system:
+                                    _system.update({'name' : _tools['name']})
+                                    _system.update({'version':  _tools['version']})
                                     dependencies.append(_system)
             return dependencies
         except Exception as e:

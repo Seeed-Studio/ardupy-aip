@@ -36,9 +36,11 @@ from pip._internal.operations.prepare import (
     unpack_url,
 )
 import os
+import time
 from aip.variable import *
 from tempfile import *
 from aip.utils import SerialUtils
+from aip.utils import readonly_handler
 from aip.logger import log
 from aip.parser import parser
 import random
@@ -277,10 +279,12 @@ const mp_obj_module_t mp_module_arduino = {
         board_id = parser.get_id_by_name(self.board)
         archiveFile = parser.get_archiveFile_by_id(board_id)
         print(archiveFile)
-        if not os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
-            downloader = Downloader(session, progress_bar="on")
-            ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['version']))
+        downloader = Downloader(session, progress_bar="on")
+        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        if os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
             if not os.path.exists(ardupycoredir):
+                shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'])), onerror=readonly_handler)
+                time.sleep(1)
                 os.makedirs(ardupycoredir)
                 unpack_url(
                     Link(archiveFile['url']),
@@ -288,8 +292,15 @@ const mp_obj_module_t mp_module_arduino = {
                     downloader=downloader,
                     download_dir=None,
                 )
-        # tools = parser.get_toolsDependencies_url_by_id(board_id)
-        # print(tools)
+        else:
+            os.makedirs(ardupycoredir)
+            unpack_url(
+                Link(archiveFile['url']),
+                ardupycoredir,
+                downloader=downloader,
+                download_dir=None,
+            )
+
 
     def clean(self):
         ardupycoredir = parser.user_config_dir+"/ardupycore/ArduPy"
@@ -396,5 +407,5 @@ const mp_obj_module_t mp_module_arduino = {
         # else:
         #     raise Exception(print('compile error'))
         #     #return ERRO
-      
+        
         return SUCCESS
