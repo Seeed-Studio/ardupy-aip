@@ -40,7 +40,7 @@ class Logger(object):
         self.logger.debug(Fore.WHITE + str(msg) + Style.RESET_ALL)
  
     def info(self, msg):
-        self.logger.info(Fore.GREEN + str(msg) + Style.RESET_ALL)
+        print(Fore.GREEN + str(msg) + Style.RESET_ALL)
  
     def warning(self, msg):
         self.logger.warning(Fore.YELLOW + str(msg) + Style.RESET_ALL)
