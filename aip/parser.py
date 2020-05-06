@@ -103,7 +103,7 @@ class Parser(object):
             if(url.find('json') != -1):
                 _url = self.cp.get("library", "additional_url")
                 _url_list = _url.split(',') 
-                if not (url in _url_list):
+                if not (url in _url_list): # is existed?
                     _url += ',' + url
                     self.cp.set('library', "additional_url", _url)
                     self.cp.write(self.config_file) #write to aip.conf
@@ -146,22 +146,23 @@ class Parser(object):
             else:
                 log.info("done!")
     
-    def parser_all_json(self):
+    def parser_all_json(self): #parser all the json
         for path in os.listdir(self.user_config_dir):
             if path.find('json') != -1:
                 try:
                     with open(str(Path(self.user_config_dir,path)), 'r') as load_f:
                         json_dict = json.load(load_f)
                         path = {'path': path}
-                        package_id = 0
+                        package_id = 0  # package index in file
                         for _package in json_dict['packages']:
                             name = {'package': package_id}
-                            platform_id = 0
+                            platform_id = 0 # platform index in package
                             for _platform in _package['platforms']:
                                 id = {'id': len(self.packages)}
                                 platform = {'platform': platform_id}
                                 arch = {'arch': _platform['architecture']}
                                 package = {}
+                                # Organize data and record
                                 package.update(id)
                                 package.update(name)
                                 package.update(platform)
@@ -245,8 +246,10 @@ class Parser(object):
         
         return None
 
+
+parser = Parser()
+
 def main():
-    parser = Parser()
     print(parser.get_toolsDependencies_url_by_id(0))
 
 if __name__ == '__main__':

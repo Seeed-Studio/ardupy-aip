@@ -39,8 +39,8 @@ from pip._internal.operations.prepare import (
 
 import os
 import stat
-from aip.variable import *
-from aip.command import *
+from aip.utils import readonly_handler
+from aip.parser import parser
 from aip.logger import log
 import shutil
 from pathlib import Path
@@ -60,7 +60,7 @@ class uninstallCommand(Command):
         pass
           
     def run(self, options, args):
-        moduledir = Path(user_config_dir, "modules")
+        moduledir = Path(parser.user_config_dir, "modules")
         for package in args:
                 log.debug(package[package.find("/")+1:])
                 if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):

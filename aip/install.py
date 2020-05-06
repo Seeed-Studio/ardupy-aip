@@ -38,8 +38,7 @@ from pip._internal.operations.prepare import (
 )
 
 import os
-import stat
-from aip.variable import *
+from aip.utils import readonly_handler
 from aip.command import *
 from aip.logger import log
 import shutil

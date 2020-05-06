@@ -27,6 +27,7 @@ import re
 import os
 import json
 import demjson
+import stat
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
@@ -35,9 +36,9 @@ elif os.name == 'posix':
 else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 
-from .variable import *
-
-
+def readonly_handler(func, path, execinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 def windows_full_port_name(portname):
     # Helper function to generate proper Windows COM port paths.  Apparently
