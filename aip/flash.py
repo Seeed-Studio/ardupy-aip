@@ -30,7 +30,8 @@ from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
-
+from aip.parser import parser
+from aip.logger import log
 
 from pip._internal.operations.prepare import (
     _download_http_url,
@@ -41,7 +42,6 @@ import sys
 from pathlib import Path
 import platform
 from aip.utils import SerialUtils
-from aip.variable import *
 import time
 
 
@@ -77,6 +77,7 @@ class flashCommand(RequirementCommand):
             cmdoptions.index_group,
             self.parser,
         )
+        self.parser.add_option_group(index_opts)
         
         self.serial = SerialUtils()
 
@@ -104,37 +105,12 @@ class flashCommand(RequirementCommand):
     def run(self, options, args):
 
         self.port = options.port
-        bossacdir = str(Path(user_config_dir +"/ardupycore/Seeeduino/tools/bossac"))
+        bossacdir = str(Path(parser.user_config_dir +"/ardupycore/Seeeduino/tools/bossac"))
 
         if not os.path.exists(bossacdir):
             os.makedirs(bossacdir)
         session = self.get_default_session(options)
 
-        if sys.platform == "linux":
-            link = Link(
-                "http://files.seeedstudio.com/arduino/tools/i686-linux-gnu/bossac-1.9.1-seeeduino-linux.tar.gz")
-        if sys.platform == "win32":
-            link = Link(
-                "http://files.seeedstudio.com/arduino/tools/i686-mingw32/bossac-1.9.1-seeeduino-windows.tar.bz2")
-        if sys.platform == "darwin":
-            link = Link(
-                "http://files.seeedstudio.com/arduino/tools/x86_64-apple-darwin/bossac-1.8-48-gb176eee-i386-apple-darwin16.1.0.tar.gz")
-
-        bossac = ""
-
-        if platform.system() == "Windows":
-            bossac = str(Path(bossacdir, "bossac.exe"))
-        else:
-            bossac = str(Path(bossacdir, "bossac"))
-
-        if not os.path.exists(bossac):
-            downloader = Downloader(session, progress_bar="on")
-            unpack_url(
-                link,
-                bossacdir,
-                downloader=downloader,
-                download_dir=None,
-            )
 
         try_count = 0
         do_bossac = True
@@ -175,11 +151,8 @@ class flashCommand(RequirementCommand):
                         temp_dir=firmwaredir,
                         hashes=None)
             else:
-                ardupybin = str(Path(user_config_dir +"/deploy/Ardupy.bin"))
-
-            _flash_parm = flash_param[name.replace(' ', '_')];
-            print((str(bossac) + _flash_parm) % (port,  ardupybin))
-            os.system((str(bossac) + _flash_parm) % (port,  ardupybin))
+                ardupybin = str(Path(parser.user_config_dir +"/deploy/Ardupy.bin"))
+                
         else:
             log.warning("Sorry, the device you should have is not plugged in.")
             return ERROR

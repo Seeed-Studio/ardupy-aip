@@ -28,6 +28,7 @@ import os
 import json
 import demjson
 import stat
+from aip.parser import parser
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
@@ -39,6 +40,10 @@ else:
 def readonly_handler(func, path, execinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
+
+
+
+
 
 def windows_full_port_name(portname):
     # Helper function to generate proper Windows COM port paths.  Apparently
@@ -69,7 +74,7 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     (vid, pid) = b["appcation"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
@@ -88,13 +93,13 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     (vid, pid) = b["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return (None,None,None,False)
+        return None
     
     def getAvailableBoard(self):
         for info in self.getAllPortInfo():
@@ -103,7 +108,7 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     
                     (vid, pid) = b["appcation"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
@@ -114,11 +119,11 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return (None,None,None,False)
+        None
     
     def listBoard(self):
         list = [];
-        for b in  BOARD_IDS:
+        for b in  parser.boards:
            list.append(b["name"])
         return demjson.encode(list)
     
@@ -130,7 +135,7 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     if b["name"] != designated:
                         continue
                     (vid, pid) = b["appcation"]
@@ -152,7 +157,7 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     if b["name"] != designated:
                         continue
                     (vid, pid) = b["appcation"]
@@ -164,7 +169,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return (None,None,None,False)
+        None
         
     def isBootloaderStatus(self):
 
@@ -182,7 +187,7 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     (vid, pid) = b["appcation"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         return (b["name"], b["version"], b["firmware_url"])
@@ -194,7 +199,7 @@ class SerialUtils(object):
     
     
     #  def getFirmwareByBoard(self, Board):
-    #         for b in  BOARD_IDS:
+    #         for b in  parser.boards:
     #         (_vid, _pid) = b["appcation"]
     #         if (_vid, _pid) == (vid, pid):
     #              return (b["version"], b["Firmware_url"])

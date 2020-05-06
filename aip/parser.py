@@ -185,7 +185,8 @@ class Parser(object):
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
                 json_dict = json.load(load_f)
                 platform = json_dict['packages'][package_id]['platforms'][platform_id]
-                return platform['version'],  platform['url'], platform['archiveFileName'], platform['checksum'], platform['size']
+                archiveFile = {'package':json_dict['packages'][package_id]['name'], 'arch':platform['architecture'], 'version':platform['version'],  'url':platform['url'],'archiveFileName':platform['archiveFileName'], 'checksum':platform['checksum'], 'size':platform['size']}
+                return archiveFile
         except Exception as e:
             log.error(e) 
         
@@ -204,7 +205,7 @@ class Parser(object):
 
     def get_id_by_name(self, name):
         for board in self.boards:
-            if board['name'] == name:
+            if board['name'].replace(' ', '_') == name.replace(' ', '_'):
                 return board['id']
         
         return None
@@ -250,7 +251,7 @@ class Parser(object):
 parser = Parser()
 
 def main():
-    print(parser.get_toolsDependencies_url_by_id(0))
+    print(parser.get_id_by_name('wio terminal'))
 
 if __name__ == '__main__':
     main()

@@ -46,8 +46,6 @@ from pip._internal.utils.misc import (
 
 import os
 import stat
-from aip.variable import *
-from aip.command import *
 from aip.logger import log
 import shutil
 from pathlib import Path
