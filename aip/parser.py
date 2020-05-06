@@ -28,6 +28,7 @@ from configparser import ConfigParser
 from aip.logger import log
 import os
 import re
+import json
 from pathlib import Path
 import urllib.request
 import ssl
@@ -50,6 +51,20 @@ class Parser(object):
             self.cp.add_section('library')
             self.cp.set("library", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.write(self.config_file)
+        
+        self.boards = []
+        self.packages = []
+        #self.update_loacl_board_json()
+        #self.update_loacl_library_json()
+        self.parser_all_json()
+        import platform
+        sysstr = platform.system()
+        if(sysstr =="Windows"):
+            self.system = 'Windows'
+        elif(sysstr == "Linux"):
+            self.system = 'Linux'
+        else:
+            self.system = 'MacOS'
 
     def get_board_additional_url(self):
         url = self.cp.get("board", "additional_url")
@@ -58,16 +73,22 @@ class Parser(object):
     
     def add_board_additional_url(self, url):
         if re.match(r'^https?:/{2}\w.+$', url): # is a url?
-            if(url.find('json')):
+            if(url.find('json') != -1):
                 _url = self.cp.get("board", "additional_url")
-                _url += ',' + url
-                print(_url)
-                self.cp.set('board', "additional_url", _url)
-                self.cp.write(self.config_file) #write to aip.conf
-                return True
+                _url_list = _url.split(',') 
+                if not (url in _url_list):
+                    _url += ',' + url
+                    self.cp.set('board', "additional_url", _url)
+                    self.cp.write(self.config_file) #write to aip.conf
+                    return True
+                else:
+                    log.error(url + " is existed.")
+                    return False
             else:
+                log.error(url + " is not a json file.")
                 return False
         else:
+            log.error(url + " is not a url.")
             return False
     
 
@@ -79,16 +100,22 @@ class Parser(object):
     
     def add_library_additional_url(self, url):
         if re.match(r'^https?:/{2}\w.+$', url): # is a url?
-            if(url.find('json')):
+            if(url.find('json') != -1):
                 _url = self.cp.get("library", "additional_url")
-                _url += ',' + url
-                print(_url)
-                self.cp.set('library', "additional_url", _url)
-                self.cp.write(self.config_file) #write to aip.conf
-                return True
+                _url_list = _url.split(',') 
+                if not (url in _url_list):
+                    _url += ',' + url
+                    self.cp.set('library', "additional_url", _url)
+                    self.cp.write(self.config_file) #write to aip.conf
+                    return True
+                else:
+                    log.error(url + " is existed.")
+                    return False
             else:
+                log.error(url + " is not a json file.")
                 return False
         else:
+            log.error(url + " is not a url.")
             return False
     
     def update_loacl_board_json(self):
@@ -118,12 +145,109 @@ class Parser(object):
                 continue
             else:
                 log.info("done!")
-        
+    
+    def parser_all_json(self):
+        for path in os.listdir(self.user_config_dir):
+            if path.find('json') != -1:
+                try:
+                    with open(str(Path(self.user_config_dir,path)), 'r') as load_f:
+                        json_dict = json.load(load_f)
+                        path = {'path': path}
+                        package_id = 0
+                        for _package in json_dict['packages']:
+                            name = {'package': package_id}
+                            platform_id = 0
+                            for _platform in _package['platforms']:
+                                id = {'id': len(self.packages)}
+                                platform = {'platform': platform_id}
+                                arch = {'arch': _platform['architecture']}
+                                package = {}
+                                package.update(id)
+                                package.update(name)
+                                package.update(platform)
+                                package.update(arch)
+                                package.update(path)
+                                self.packages.append(package)
+                                for _board in _platform['board']:
+                                    _board.update(id)
+                                    self.boards.append(_board)
+                                platform_id += 1
+                            package_id +=1 
+                except Exception as e:
+                    log.error(e)
 
+    def get_archiveFile_by_id(self, id):
+        try:
+            _package = self.packages[id]
+            package_id = _package['package']
+            platform_id = _package['platform']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                platform = json_dict['packages'][package_id]['platforms'][platform_id]
+                return platform['version'],  platform['url'], platform['archiveFileName'], platform['checksum'], platform['size']
+        except Exception as e:
+            log.error(e) 
+        
+        return None
+    
+    def get_archiveFile_by_board(self, board):
+        id = board['id']
+        return self.get_archiveFile_by_id(id)
+    
+    def get_board_by_name(self, name):
+        for board in self.boards:
+            if board['name'] == name:
+                return board
+        
+        return None
+
+    def get_id_by_name(self, name):
+        for board in self.boards:
+            if board['name'] == name:
+                return board['id']
+        
+        return None
+    
+    def get_toolsDependencies_by_id(self, id):
+        try:
+            _package = self.packages[id]
+            package_id = _package['package']
+            platform_id = _package['platform']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                platform = json_dict['packages'][package_id]['platforms'][platform_id]
+                return platform['toolsDependencies']
+        except Exception as e:
+            log.error(e) 
+        
+        return None
+    
+    def get_toolsDependencies_url_by_id(self, id):
+        dependencies = []
+        try:
+            _package = self.packages[id]
+            package_id = _package['package']
+            platform_id = _package['platform']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                platform = json_dict['packages'][package_id]['platforms'][platform_id]
+                tools = json_dict['packages'][package_id]['tools']
+                toolsDependencies = platform['toolsDependencies']
+                for _toolsDependencies in toolsDependencies:
+                    for _tools in tools:
+                        if _tools['name'] == _toolsDependencies['name'] and _tools['version'] == _toolsDependencies['version']:
+                            for _system in _tools['systems']:
+                                if _system['host'] == self.system:
+                                    dependencies.append(_system)
+            return dependencies
+        except Exception as e:
+            log.error(e) 
+        
+        return None
 
 def main():
     parser = Parser()
-    print(parser.get_library_additional_url())
+    print(parser.get_toolsDependencies_url_by_id(0))
 
 if __name__ == '__main__':
     main()
