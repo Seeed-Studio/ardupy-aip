@@ -37,17 +37,19 @@ from pip._internal.operations.prepare import (
 )
 import os
 import time
-from aip.variable import *
-from tempfile import *
+
+from tempfile import mktemp
+from pathlib import Path
+import random
+import shutil
+import sys
+import re
+
 from aip.utils import SerialUtils
 from aip.utils import readonly_handler
 from aip.logger import log
 from aip.parser import parser
-import random
-import shutil
-import sys
-from pathlib import Path
-import re
+from aip.variable import *
 
 
 class buildCommand(RequirementCommand):
@@ -278,7 +280,6 @@ const mp_obj_module_t mp_module_arduino = {
     def downloadAll(self, session):
         board_id = parser.get_id_by_name(self.board)
         archiveFile = parser.get_archiveFile_by_id(board_id)
-        print(archiveFile)
         downloader = Downloader(session, progress_bar="on")
         ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
         if os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
@@ -286,24 +287,53 @@ const mp_obj_module_t mp_module_arduino = {
                 shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'])), onerror=readonly_handler)
                 time.sleep(1)
                 os.makedirs(ardupycoredir)
+                log.info('Downloading ' + archiveFile['archiveFileName'] + '...')
+                try:
+                    unpack_url(
+                        Link(archiveFile['url']),
+                        ardupycoredir,
+                        downloader=downloader,
+                        download_dir=None,
+                    )
+                except Exception as e:
+                    log.error(e)
+                    os.remove(ardupycoredir)
+        else:
+            os.makedirs(ardupycoredir)
+            log.info('Downloading ' + archiveFile['archiveFileName'])
+            try:
                 unpack_url(
                     Link(archiveFile['url']),
                     ardupycoredir,
                     downloader=downloader,
                     download_dir=None,
                 )
-        else:
-            os.makedirs(ardupycoredir)
-            unpack_url(
-                Link(archiveFile['url']),
-                ardupycoredir,
-                downloader=downloader,
-                download_dir=None,
-            )
+            except Exception as e:
+                log.error(e)
+                os.remove(ardupycoredir)
+        
+        toolsDependencies = parser.get_toolsDependencies_url_by_id(board_id)
+        for tool in toolsDependencies:
+            tooldir = str(Path(ardupycoredir, archiveFile['package'], 'tools', tool['name'],  tool['version']))
+            if not os.path.exists(tooldir):
+                log.info('Downloading '+ tool['name'] + '...')
+                os.makedirs(tooldir)
+                try:
+                    unpack_url(
+                        Link(tool['url']),
+                        tooldir,
+                        downloader=downloader,
+                        download_dir=None,
+                        )
+                except Exception as e:
+                    log.error(e)
+                    os.remove(tooldir)
 
 
     def clean(self):
-        ardupycoredir = parser.user_config_dir+"/ardupycore/ArduPy"
+        board_id = parser.get_id_by_name(self.board)
+        archiveFile = parser.get_archiveFile_by_id(board_id)
+        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))
         if os.path.exists(ardupycoredir):
             try:
                 shutil.rmtree(ardupycoredir)

@@ -28,7 +28,9 @@ import os
 import json
 import demjson
 import stat
+
 from aip.parser import parser
+
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
@@ -36,14 +38,11 @@ elif os.name == 'posix':
 #~ elif os.name == 'java':
 else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
+    
 
 def readonly_handler(func, path, execinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
-
-
-
-
 
 def windows_full_port_name(portname):
     # Helper function to generate proper Windows COM port paths.  Apparently

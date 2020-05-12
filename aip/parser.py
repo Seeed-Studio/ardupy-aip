@@ -23,17 +23,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from pip._internal.utils import appdirs
 from configparser import ConfigParser
-from aip.logger import log
+from pathlib import Path
+import urllib.request
 import os
 import re
 import json
-from pathlib import Path
-import urllib.request
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
+from pip._internal.utils import appdirs
+from aip.logger import log
+
+
+def get_platform():
+    import platform
+    _platform = platform.platform()
+    _os = 'undifined'
+    if _platform.find('Windows') >= 0:
+        _os = 'i686-mingw32'
+    elif _platform.find('Linux') >= 0:
+        if _platform.find('arm') >= 0:
+            _os = 'arm-linux-gnueabihf'
+        elif _platform.find('x86_64') >= 0:
+            _os = 'x86_64-pc-linux-gnu'
+        elif _platform.find('i686') >= 0:
+            _os = 'i686-pc-linux-gnu'
+        elif _platform.find('aarch64') >= 0: 
+            _os = 'aarch64-linux-gnu'
+    elif _platform.find('Darwin') >= 0:
+            _os = 'x86_64-apple-darwin'
+    
+    return _os
 
 class Parser(object):
     def __init__(self):
@@ -57,14 +78,8 @@ class Parser(object):
         #self.update_loacl_board_json()
         #self.update_loacl_library_json()
         self.parser_all_json()
-        import platform
-        sysstr = platform.system()
-        if(sysstr =="Windows"):
-            self.system = 'Windows'
-        elif(sysstr == "Linux"):
-            self.system = 'Linux'
-        else:
-            self.system = 'MacOS'
+        self.system = get_platform()
+    
 
     def get_board_additional_url(self):
         url = self.cp.get("board", "additional_url")
@@ -248,12 +263,13 @@ class Parser(object):
             log.error(e) 
         
         return None
-
+        
+    
 
 parser = Parser()
 
 def main():
-    print(parser.get_id_by_name('wio terminal'))
+    print(parser.get_toolsDependencies_url_by_id(0))
 
 if __name__ == '__main__':
     main()
