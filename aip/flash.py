@@ -183,8 +183,6 @@ class flashCommand(RequirementCommand):
                         downloader=downloader,
                         temp_dir=firmwaredir,
                         hashes=None)
-            elif options.burn == True:
-                print(args)
             else:
                 ardupybin = str(Path(user_config_dir +"/deploy/Ardupy.bin"))
 

@@ -80,8 +80,8 @@ class buildCommand(RequirementCommand):
         self.header = ""
         self.board = "wio_terminal"
         self.arduinoCoreVersion = "1.7.1"
-        self.gcc = str(Path(user_config_dir+gcc_48))
-        self.cpp = str(Path(user_config_dir+cpp_48))
+        self.gcc = str(Path(user_config_dir+arm_gcc))
+        self.cpp = str(Path(user_config_dir+arm_cpp))
         self.headerlist = []
 
     def endWith(self, s, *endstring):
@@ -105,12 +105,12 @@ class buildCommand(RequirementCommand):
         return wants_files
 
     def buildFarm(self, outputdir):
-        gcc_def = grove_ui_gcc_def.format(
+        gcc_def = gcc_defs[self.board].format(
             self.board.upper()).replace("                    ", "")
         output_str = "   -o {0}   -c {1}"
-        gcc_flag = grove_ui_gcc_flag
+        gcc_flag = gcc_flags[self.board]
         gcc_cmd = self.gcc + gcc_def + self.headers + gcc_flag + output_str
-        cpp_cmd = self.cpp + gcc_def + self.headers + grove_ui_cpp_flag + output_str
+        cpp_cmd = self.cpp + gcc_def + self.headers + cpp_flags[self.board] + output_str
         output_o = []
         # build all of source file
         for f in self.srcfile:
@@ -129,7 +129,7 @@ class buildCommand(RequirementCommand):
                 output_o.append(out)
                 os.system(cmd)
 
-        gcc_ld_flag = grove_ui_gcc_ld_flag.format(user_config_dir+"/ardupycore", " ".join(
+        gcc_ld_flag = ld_flags[self.board].format(user_config_dir+"/ardupycore", " ".join(
             output_o), outputdir, self.board).replace("                        ", "")
         print(self.gcc+gcc_ld_flag)
         os.system(self.gcc+gcc_ld_flag)
@@ -193,8 +193,8 @@ const mp_obj_module_t mp_module_arduino = {
 
         # makeversionhdr.make_version_header(str(Path(genhdr,"mpversion.h")))
         shutil.copyfile(str(Path(
-            user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/mpversion.h")), str(Path(genhdr, "mpversion.h")))
-        shutil.copyfile(str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/moduledefs.h")),
+            user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.board+"/mpversion.h")), str(Path(genhdr, "mpversion.h")))
+        shutil.copyfile(str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.board+"/moduledefs.h")),
                         str(Path(genhdr, "moduledefs.h")))
 
         mp_generate_flag = micropython_CFLAGS.format(str(Path(user_config_dir+"/ardupycore/ArduPy")),
@@ -235,7 +235,7 @@ const mp_obj_module_t mp_module_arduino = {
             makeqstrdefs.process_file(infile)
 
         makeqstrdefs.cat_together()
-        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/qstrdefs.preprocessed.h")),
+        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/" + self.board+ "/qstrdefs.preprocessed.h")),
                                                          str(Path(genhdr, "qstrdefs.collected.h"))])
 
         qstrdefs_generated_h = open(str(Path(genhdr, "qstrdefs.generated.h")), "w")
@@ -343,14 +343,13 @@ const mp_obj_module_t mp_module_arduino = {
         self.downloadAll(session)
         self.get_arduinocore_version()
         # Converts the header file to the absolute path of the current system
-        for h in ardupycore_headers:
+        for h in samd_ardupycore_headers:
             # add Arduino Core version
             if h[0:35] == "/ardupycore/Seeeduino/hardware/samd":
-                h = h.format(self.arduinoCoreVersion)
+                h = h.format(self.arduinoCoreVersion,variants[self.board])
             self.headerlist.append(str(Path(user_config_dir+h)))
         self.headerlist.append(
             str(Path(user_config_dir+board_headers+self.board)))
-
         # setup ardupy modules dir
         moduledir = str(Path(user_config_dir, "modules"))
         if not os.path.exists(moduledir):
@@ -386,7 +385,7 @@ const mp_obj_module_t mp_module_arduino = {
             os.remove(firmware_path)
 
         # Convert ELF files to binary files
-        objcopy_cmd = str(Path(user_config_dir + gcc_48_objcopy)) + "-O binary " \
+        objcopy_cmd = str(Path(user_config_dir + arm_gcc_objcopy)) + "-O binary " \
             + str(Path(builddir + "/Ardupy")) + " " \
             + firmware_path
 
@@ -394,7 +393,7 @@ const mp_obj_module_t mp_module_arduino = {
         os.system(objcopy_cmd)
 
         # Print size information
-        os.system(str(Path(user_config_dir + gcc_48_size)) +
+        os.system(str(Path(user_config_dir + arm_gcc_size)) +
                   " -A " + str(Path(builddir + "/Ardupy")))
 
         # delete build dir
