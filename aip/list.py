@@ -49,8 +49,11 @@ import stat
 from aip.variable import *
 from aip.command import *
 from aip.logger import log
+from aip.utils import dealGenericOptions
 import shutil
 from pathlib import Path
+
+
 
 class listCommand(Command):
     """
@@ -65,8 +68,8 @@ class listCommand(Command):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()        
         super(listCommand, self).__init__(*args, **kw)
-
 
     def output_package_listing_columns(self, data, header):
         # insert the header first: we need to know the size of column names

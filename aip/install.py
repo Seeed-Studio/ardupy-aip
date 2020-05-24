@@ -42,6 +42,7 @@ import stat
 from aip.variable import *
 from aip.command import *
 from aip.logger import log
+from aip.utils import dealGenericOptions
 import shutil
 from pathlib import Path
 
@@ -56,6 +57,7 @@ class installCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(installCommand, self).__init__(*args, **kw)
 
         self.cmd_opts.add_option(

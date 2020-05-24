@@ -34,6 +34,7 @@ import platform
 import time
 from aip.utils import windows_full_port_name
 from aip.utils import SerialUtils
+from aip.utils import dealGenericOptions
 import serial
 import subprocess
 import posixpath
@@ -50,6 +51,7 @@ class boardCommand(Command):
     summary = "Get basic information of ArduPy board."
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(boardCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
             '-s', '--scan',

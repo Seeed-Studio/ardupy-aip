@@ -39,6 +39,7 @@ import os
 from aip.variable import *
 from tempfile import *
 from aip.utils import SerialUtils
+from aip.utils import dealGenericOptions
 from aip.logger import log
 import random
 import shutil
@@ -58,15 +59,8 @@ class buildCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
-        super(buildCommand, self).__init__(*args, **kw)
-
-        self.cmd_opts.add_option(
-            '-b', '--board',
-            dest='board',
-            action='store',
-            default="",
-            help='The name of the ArduPy board.')
-        
+        dealGenericOptions()
+        super(buildCommand, self).__init__(*args, **kw)        
         self.cmd_opts.add_option(
             '-l', '--list',
             dest='list',
@@ -218,7 +212,7 @@ const mp_obj_module_t mp_module_arduino = {
             extern_mp_src.append(f)
 
         gen_i_last = self.gcc + "-E -DARDUPY_MODULE -DNO_QSTR " + mp_generate_flag + " ".join(extern_mp_src) + \
-            "  " + str(Path(user_config_dir+"/ardupycore/ArduPy/boards/"+self.board+"/mpconfigport.h")) + \
+            "  " + str(Path(user_config_dir+"/ardupycore/ArduPy/mpconfigport.h")) + \
             " > " + str(Path(genhdr, "qstr.i.last"))
         log.debug(gen_i_last)
         os.system(gen_i_last)

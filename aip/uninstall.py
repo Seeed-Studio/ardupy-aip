@@ -41,6 +41,7 @@ import os
 import stat
 from aip.variable import *
 from aip.command import *
+from aip.utils import dealGenericOptions
 from aip.logger import log
 import shutil
 from pathlib import Path
@@ -56,8 +57,9 @@ class uninstallCommand(Command):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(uninstallCommand, self).__init__(*args, **kw)
-        pass
+        
           
     def run(self, options, args):
         moduledir = Path(user_config_dir, "modules")

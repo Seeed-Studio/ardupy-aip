@@ -41,6 +41,7 @@ import sys
 from pathlib import Path
 import platform
 from aip.utils import SerialUtils
+from aip.utils import dealGenericOptions
 from aip.variable import *
 import time
 
@@ -56,6 +57,7 @@ class flashCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(flashCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
             '-p', '--port',
@@ -70,6 +72,13 @@ class flashCommand(RequirementCommand):
             action='store_true',
             default=False,
             help='flash latest version firmware')
+
+        self.cmd_opts.add_option(
+            '--flash',
+            dest='flash',
+            action='store',
+            default=False,
+            help='flash specific firmware')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -174,6 +183,8 @@ class flashCommand(RequirementCommand):
                         downloader=downloader,
                         temp_dir=firmwaredir,
                         hashes=None)
+            elif options.burn == True:
+                print(args)
             else:
                 ardupybin = str(Path(user_config_dir +"/deploy/Ardupy.bin"))
 

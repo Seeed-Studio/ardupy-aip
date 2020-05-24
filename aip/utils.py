@@ -36,7 +36,24 @@ else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 
 from .variable import *
+from pip._internal.cli import cmdoptions
+from functools import partial
+from optparse import Option
 
+board  = partial(
+    Option,
+    '-b', '--board',
+    dest='board',
+    action='store',
+    default="",
+    help='The name of the ArduPy board.',
+)  # type: Callable[..., Option]
+
+
+
+def dealGenericOptions():
+    cmdoptions.general_group['options'].append(board)
+    cmdoptions.general_group['options'].remove(cmdoptions.isolated_mode)
 
 
 def windows_full_port_name(portname):
