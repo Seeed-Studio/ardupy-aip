@@ -94,7 +94,7 @@ samd_ardupycore_headers = ["/ardupycore/ArduPy",
                       "/ardupycore/Seeeduino/hardware/samd/{0}/libraries/USBHost/src",
                       "/ardupycore/Seeeduino/hardware/samd/{0}/libraries/SAMD_AnalogCorrection/src",
                       "/ardupycore/Seeeduino/tools/CMSIS/4.5.0/CMSIS/Include",
-                      "/ardupycore/Seeeduino/tools/CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL"]
+                      "/ardupycore/Seeeduino/tools/CMSIS-Atmel/1.2.1/CMSIS-Atmel/CMSIS/Device/ATMEL"]
 
 board_headers = "/ardupycore/ArduPy/boards/"
 
