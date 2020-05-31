@@ -186,7 +186,7 @@ class flashCommand(RequirementCommand):
             else:
                 ardupybin = str(Path(user_config_dir +"/deploy/Ardupy.bin"))
 
-            _flash_parm = flash_param[name.replace(' ', '_')];
+            _flash_parm = flash_param[name];
             print((str(bossac) + _flash_parm) % (port,  ardupybin))
             os.system((str(bossac) + _flash_parm) % (port,  ardupybin))
         else:

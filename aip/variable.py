@@ -103,8 +103,8 @@ board_headers = "/ardupycore/ArduPy/boards/"
 
 
 flash_param = { 
-    'cortex-m4': ' -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R ',
-    'XIAO' :  ' -i -d --port=%s -U -i  --offset=0x2000 -w -v %s -R '
+    'Wio_terminal': ' -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R ',
+    'Seeeduino_XIAO' :  ' -i -d --port=%s -U -i  --offset=0x2000 -w -v %s -R '
 }
 
 # {0}: ardupy  path

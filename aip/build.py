@@ -83,7 +83,6 @@ class buildCommand(RequirementCommand):
         self.gcc = str(Path(user_config_dir+arm_gcc))
         self.cpp = str(Path(user_config_dir+arm_cpp))
         self.headerlist = []
-        self.json_data = ""
         self.architecture = "cortex-m4"
         self.variants = "wio_terminal"
         self.usb_vid = "2886"
@@ -326,7 +325,7 @@ const mp_obj_module_t mp_module_arduino = {
 
     def initBoard(self, pid, name):
         if pid != None:
-            for b in self.json_data["board"]:
+            for b in json_dict["board"]:
                 if b["appcation"][1] == pid or b["bootloader"][1] == pid:
                     self.usb_pid = b["appcation"][1]
                     self.usb_vid = b["appcation"][0]
@@ -334,7 +333,7 @@ const mp_obj_module_t mp_module_arduino = {
                     self.board_name = b["name"]
                     self.part_family = b["part_family"] 
         if name != None:
-            for b in self.json_data["board"]:
+            for b in json_dict["board"]:
                 if b["name"] == name:
                     self.usb_pid = b["appcation"][1]
                     self.usb_vid = b["appcation"][0]
@@ -345,13 +344,7 @@ const mp_obj_module_t mp_module_arduino = {
     def run(self, options, args):
         # is update package_seeeduino_ardupy_index.json
         user_config_dir_files = os.listdir(user_config_dir)
-        json_file = ""
-        for files in user_config_dir_files:
-            if files[0:30] == "package_seeeduino_ardupy_index":
-                with open(Path(user_config_dir, files)) as f:
-                    self.json_data = json.load(f)
-                break
-            
+
         ser = SerialUtils()
         port,desc, hwid, is_connected = ser.getAvailableBoard()
         is_default = False
@@ -380,7 +373,7 @@ const mp_obj_module_t mp_module_arduino = {
         builddir = mktemp()
         os.makedirs(builddir)
 
-        self.downloadAll(session, self.json_data["ardupycore"])
+        self.downloadAll(session, json_dict["ardupycore"])
         self.get_arduinocore_version()
         # Converts the header file to the absolute path of the current system
         for h in samd_ardupycore_headers:

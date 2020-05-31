@@ -86,9 +86,9 @@ class listCommand(Command):
             write_output(val)
 
     def run(self, options, args):
-        header = ["Package", "Version", "Location"]
+        header = ["Packages", "Version", "Location"]
         moduledir = Path(user_config_dir, "modules")
-        libs = []
+        lists = []
 
         for library in os.listdir(moduledir):
             library_json_location = str(Path(moduledir,library,'library.json'))
@@ -98,9 +98,15 @@ class listCommand(Command):
                     lib = [library, package_json_dict['version'], package_json_dict['repository']['url']]
             except Exception as e:
                 pass
-            libs.append(lib)
-        if len(libs) >= 1:
-            self.output_package_listing_columns(libs, header)
+            lists.append(lib)
+        if len(lists) >= 1:
+            self.output_package_listing_columns(lists, header)
+        print("-------------------------------------------------------------------------------------\n")
+        header = ["Boards", "Version", ""]
+        lists = []
+        for b in json_dict["board"]:
+            lists.append([b["name"],b["version"],""])
+        self.output_package_listing_columns(lists, header)
         return SUCCESS
 
 
