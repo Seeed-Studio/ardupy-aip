@@ -23,8 +23,11 @@ arm_gcc_size = "/ardupycore/Seeeduino/tools/arm-none-eabi-gcc/bin/arm-none-eabi-
 
 
 # {0}: board name
+# {1}: vid 
+# {2}: pid
+# {3}: usb product
 gcc_defs = {
-    "wio_terminal" : " -DARDUINO=10810 \
+    "cortex-m4" : " -DARDUINO=10810 \
                     -DARDUINO_ARCH_SAMD \
                     -D{0} \
                     -DARDUPY_MODULE \
@@ -33,28 +36,27 @@ gcc_defs = {
                     -DF_CPU=120000000L \
                     -DUSBCON \
                     -DLCD_SUPPORT \
-                    -DUSB_CONFIG_POWER=100 -DUSB_MANUFACTURER=\"Seeed Studio\" -DUSB_PID=0x802D -DUSB_PRODUCT=\"Seeed Wio Terminal\" -DUSB_VID=0x2886 \
+                    -DUSB_CONFIG_POWER=100 -DUSB_MANUFACTURER=\"Seeed Studio\" -DUSB_PID={2} -DUSB_PRODUCT=\"{3}\" -DUSB_VID={1} \
                     -DVARIANT_QSPI_BAUD_DEFAULT=50000000 -D__FPU_PRESENT -D__SAMD51P19A__ -D__SAMD51__ ",
-    "seeeduino_m0":" -DARDUINO=10810 \
+    "cortex-m0plus":" -DARDUINO=10810 \
             -DARDUINO_ARCH_SAMD \
-            -DARDUINO_SEEED_XIAO_M0 \
             -DARDUPY_MODULE \
             -DF_CPU=48000000L \
-            -DSEEEDUINO_MO \
+            -D{0} \
             -DUSBCON \
             -DUSB_CONFIG_POWER=100 \
-            -DUSB_MANUFACTURER=\"Seeed Studio\" -DUSB_PID=0x802F -DUSB_PRODUCT=\"Seeed Seeeduino M0\" \-DUSB_VID=0x2886 \
+            -DUSB_MANUFACTURER=\"Seeed Studio\" -DUSB_PID={2} -DUSB_PRODUCT=\"{3}\" -DUSB_VID={1} \
             -D__SAMD21G18A__ -D__SAMD21__  "
 }
 
 gcc_flags = {
-    "wio_terminal" : " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -U_FORTIFY_SOURCE -Os",
-    "seeeduino_m0" : " -mcpu=cortex-m0plus -mthumb -c -g -Os -w -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -MMD -DNDEBUG -DARM_MATH_CM0PLUS -std=gnu11 -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -std=gnu99 -U_FORTIFY_SOURCE -Os"
+    "cortex-m4" : " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -U_FORTIFY_SOURCE -Os",
+    "cortex-m0plus" : " -mcpu=cortex-m0plus -mthumb -c -g -Os -w -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -MMD -DNDEBUG -DARM_MATH_CM0PLUS -std=gnu11 -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -std=gnu99 -U_FORTIFY_SOURCE -Os"
 }
 
 cpp_flags = {
-    "wio_terminal" : " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu++11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -fno-rtti -fno-exceptions -fno-threadsafe-statics -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -std=gnu99 -U_FORTIFY_SOURCE -Os",
-    "seeeduino_m0" : " -mcpu=cortex-m0plus -mthumb -c -g -Os -w -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -MMD -DNDEBUG -DARM_MATH_CM0PLUS -std=gnu++11 -fno-rtti -fno-exceptions -fno-threadsafe-statics -g"
+    "cortex-m4" : " -mcpu=cortex-m4 -mthumb -c -g -w -std=gnu++11 -ffunction-sections -fdata-sections -nostdlib -mfloat-abi=hard -mfpu=fpv4-sp-d16 -MMD -g -fno-rtti -fno-exceptions -fno-threadsafe-statics -g -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -std=gnu99 -U_FORTIFY_SOURCE -Os",
+    "cortex-m0plus" : " -mcpu=cortex-m0plus -mthumb -c -g -Os -w -ffunction-sections -fdata-sections -nostdlib --param max-inline-insns-single=500 -MMD -DNDEBUG -DARM_MATH_CM0PLUS -std=gnu++11 -fno-rtti -fno-exceptions -fno-threadsafe-statics -g"
 }
 
 
@@ -63,13 +65,13 @@ cpp_flags = {
 # {2}: build temp dir
 # {3}: board name
 ld_flags = {
-    "wio_terminal" : "  -Os -Wl,--gc-sections -save-temps -T {0}/ArduPy/boards/{3}/flash_with_bootloader.ld \
+    "cortex-m4" : "  -Os -Wl,--gc-sections -save-temps -T {0}/ArduPy/boards/{3}/flash_with_bootloader.ld \
                         -Wl,-Map,{2}/firmware.map \
                         -Wl,--whole-archive {0}/ArduPy/lib/libmicropython-cortexm4lf.a -Wl,--no-whole-archive \
                         {1} -o {2}/Ardupy --specs=nano.specs --specs=nosys.specs -mcpu=cortex-m4 -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all \
                         -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group -lm {0}/ArduPy/lib/libarm_cortexM4lf_math.a -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--end-group ",
 
-    "seeeduino_m0": " -Os -Wl,--gc-sections -save-temps -T {0}/ArduPy/boards/{3}/flash_with_bootloader.ld  \
+    "cortex-m0plus": " -Os -Wl,--gc-sections -save-temps -T {0}/ArduPy/boards/{3}/flash_with_bootloader.ld  \
                     -Wl,-Map,{2}/firmware.map \
                     -Wl,--whole-archive {0}/ArduPy/lib/libmicropython-cortexm0plus.a -Wl,--no-whole-archive  \
                     {1} -o {2}/Ardupy  --specs=nano.specs --specs=nosys.specs -mcpu=cortex-m0plus -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all \
@@ -101,13 +103,8 @@ board_headers = "/ardupycore/ArduPy/boards/"
 
 
 flash_param = { 
-    'wio_terminal': ' -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R ',
-    'seeeduino_m0' :  ' -i -d --port=%s -U -i  --offset=0x2000 -w -v %s -R '
-}
-
-variants = {
-    'wio_terminal':'wio_terminal',
-    'seeeduino_m0': 'XIAO_m0'
+    'cortex-m4': ' -i -d --port=%s -U -i --offset=0x4000 -w -v %s -R ',
+    'XIAO' :  ' -i -d --port=%s -U -i  --offset=0x2000 -w -v %s -R '
 }
 
 # {0}: ardupy  path

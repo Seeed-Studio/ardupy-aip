@@ -78,11 +78,19 @@ class buildCommand(RequirementCommand):
         self.parser.insert_option_group(0, index_opts)
         self.srcfile = []
         self.header = ""
-        self.board = "wio_terminal"
+        # self.architecture = "wio terminal"
         self.arduinoCoreVersion = "1.7.1"
         self.gcc = str(Path(user_config_dir+arm_gcc))
         self.cpp = str(Path(user_config_dir+arm_cpp))
         self.headerlist = []
+        self.json_data = ""
+        self.architecture = "cortex-m4"
+        self.variants = "wio_terminal"
+        self.usb_vid = "2886"
+        self.usb_pid = "802D"
+        self.board_name = "wio_terminal"
+        self.part_family = "samd51"
+
 
     def endWith(self, s, *endstring):
         array = map(s.endswith, endstring)
@@ -105,12 +113,12 @@ class buildCommand(RequirementCommand):
         return wants_files
 
     def buildFarm(self, outputdir):
-        gcc_def = gcc_defs[self.board].format(
-            self.board.upper()).replace("                    ", "")
+        gcc_def = gcc_defs[self.architecture].format(
+            self.board_name.upper(), self.usb_vid, self.usb_pid, self.board_name).replace("                    ", "")
         output_str = "   -o {0}   -c {1}"
-        gcc_flag = gcc_flags[self.board]
+        gcc_flag = gcc_flags[self.architecture]
         gcc_cmd = self.gcc + gcc_def + self.headers + gcc_flag + output_str
-        cpp_cmd = self.cpp + gcc_def + self.headers + cpp_flags[self.board] + output_str
+        cpp_cmd = self.cpp + gcc_def + self.headers + cpp_flags[self.architecture] + output_str
         output_o = []
         # build all of source file
         for f in self.srcfile:
@@ -129,8 +137,8 @@ class buildCommand(RequirementCommand):
                 output_o.append(out)
                 os.system(cmd)
 
-        gcc_ld_flag = ld_flags[self.board].format(user_config_dir+"/ardupycore", " ".join(
-            output_o), outputdir, self.board).replace("                        ", "")
+        gcc_ld_flag = ld_flags[self.architecture].format(user_config_dir+"/ardupycore", " ".join(
+            output_o), outputdir, self.part_family).replace("                        ", "")
         print(self.gcc+gcc_ld_flag)
         os.system(self.gcc+gcc_ld_flag)
 
@@ -193,12 +201,12 @@ const mp_obj_module_t mp_module_arduino = {
 
         # makeversionhdr.make_version_header(str(Path(genhdr,"mpversion.h")))
         shutil.copyfile(str(Path(
-            user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.board+"/mpversion.h")), str(Path(genhdr, "mpversion.h")))
-        shutil.copyfile(str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.board+"/moduledefs.h")),
+            user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.part_family+"/mpversion.h")), str(Path(genhdr, "mpversion.h")))
+        shutil.copyfile(str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.part_family+"/moduledefs.h")),
                         str(Path(genhdr, "moduledefs.h")))
 
         mp_generate_flag = micropython_CFLAGS.format(str(Path(user_config_dir+"/ardupycore/ArduPy")),
-                                                     str(Path(user_config_dir+"/ardupycore/ArduPy/boards/"+self.board)))
+                                                     str(Path(user_config_dir+"/ardupycore/ArduPy/boards/"+self.part_family)))
 
         # remove cpp files
         # todo； only scan file start wirh "mod_ardupy_"
@@ -235,7 +243,7 @@ const mp_obj_module_t mp_module_arduino = {
             makeqstrdefs.process_file(infile)
 
         makeqstrdefs.cat_together()
-        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/" + self.board+ "/qstrdefs.preprocessed.h")),
+        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/" + self.part_family+ "/qstrdefs.preprocessed.h")),
                                                          str(Path(genhdr, "qstrdefs.collected.h"))])
 
         qstrdefs_generated_h = open(str(Path(genhdr, "qstrdefs.generated.h")), "w")
@@ -266,8 +274,8 @@ const mp_obj_module_t mp_module_arduino = {
 
         return genhdr
 
-    def downloadAll(self, session):
-        link = Link("http://files.seeedstudio.com/ardupy/ardupy-core.zip")
+    def downloadAll(self, session, ardupycore_link):
+        link = Link(ardupycore_link)
         downloader = Downloader(session, progress_bar="on")
         ardupycoredir = user_config_dir+"/ardupycore"
         if not os.path.exists(ardupycoredir + "/ArduPy"):
@@ -316,19 +324,51 @@ const mp_obj_module_t mp_module_arduino = {
             if len(file.split('.')) == 3:
                 self.arduinoCoreVersion = file
 
+    def initBoard(self, pid, name):
+        if pid != None:
+            for b in self.json_data["board"]:
+                if b["appcation"][1] == pid or b["bootloader"][1] == pid:
+                    self.usb_pid = b["appcation"][1]
+                    self.usb_vid = b["appcation"][0]
+                    self.architecture = b["architecture"]
+                    self.board_name = b["name"]
+                    self.part_family = b["part_family"] 
+        if name != None:
+            for b in self.json_data["board"]:
+                if b["name"] == name:
+                    self.usb_pid = b["appcation"][1]
+                    self.usb_vid = b["appcation"][0]
+                    self.architecture = b["architecture"]
+                    self.board_name = b["name"] 
+                    self.part_family = b["part_family"]   
+
     def run(self, options, args):
-        
-        if options.list == True:
-            ser = SerialUtils()
-            print(ser.listBoard())
-            return SUCCESS
+        # is update package_seeeduino_ardupy_index.json
+        user_config_dir_files = os.listdir(user_config_dir)
+        json_file = ""
+        for files in user_config_dir_files:
+            if files[0:30] == "package_seeeduino_ardupy_index":
+                with open(Path(user_config_dir, files)) as f:
+                    self.json_data = json.load(f)
+                break
+            
+        ser = SerialUtils()
+        port,desc, hwid, is_connected = ser.getAvailableBoard()
+        is_default = False
+        if hwid == None:
+            is_default = True
+        else:
+            if hwid[12:16] != "2886":
+                is_default = True
+            self.usb_vid = "2886"
+            self.initBoard(hwid[17:21], None)
         
         if 'clean' in args:
             self.clean()
             return SUCCESS
 
         if options.board != "":
-            self.board = options.board
+            self.initBoard(None, options.board)
 
         session = self.get_default_session(options)
         
@@ -340,16 +380,16 @@ const mp_obj_module_t mp_module_arduino = {
         builddir = mktemp()
         os.makedirs(builddir)
 
-        self.downloadAll(session)
+        self.downloadAll(session, self.json_data["ardupycore"])
         self.get_arduinocore_version()
         # Converts the header file to the absolute path of the current system
         for h in samd_ardupycore_headers:
             # add Arduino Core version
             if h[0:35] == "/ardupycore/Seeeduino/hardware/samd":
-                h = h.format(self.arduinoCoreVersion,variants[self.board])
+                h = h.format(self.arduinoCoreVersion,self.variants)
             self.headerlist.append(str(Path(user_config_dir+h)))
         self.headerlist.append(
-            str(Path(user_config_dir+board_headers+self.board)))
+            str(Path(user_config_dir+board_headers+self.part_family)))
         # setup ardupy modules dir
         moduledir = str(Path(user_config_dir, "modules"))
         if not os.path.exists(moduledir):
