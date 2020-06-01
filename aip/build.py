@@ -314,7 +314,7 @@ const mp_obj_module_t mp_module_arduino = {
         
         toolsDependencies = parser.get_toolsDependencies_url_by_id(board_id)
         for tool in toolsDependencies:
-            tooldir = str(Path(ardupycoredir, archiveFile['package'], 'tools', tool['name'],  tool['version']))
+            tooldir = str(Path(ardupycoredir, 'Arduino', 'tools', tool['name'],  tool['version']))
             if not os.path.exists(tooldir):
                 log.info('Downloading '+ tool['name'] + '...')
                 os.makedirs(tooldir)

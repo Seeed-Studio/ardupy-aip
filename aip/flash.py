@@ -80,8 +80,8 @@ class flashCommand(RequirementCommand):
             self.parser,
         )
         self.parser.add_option_group(index_opts)
-        
         self.serial = SerialUtils()
+        self.port = ""
 
     @property
     def stty(self):
@@ -106,57 +106,38 @@ class flashCommand(RequirementCommand):
 
     def run(self, options, args):
 
-        self.port = options.port
-        bossacdir = str(Path(parser.user_config_dir +"/ardupycore/Seeeduino/tools/bossac"))
-
-        if not os.path.exists(bossacdir):
-            os.makedirs(bossacdir)
-        session = self.get_default_session(options)
-
-
-        try_count = 0
-        do_bossac = True
-        while True:
-            stty = self.stty
-            print(stty)
-            if stty != "echo not support":
-                os.system(stty % 1200)
-            #os.system(str(bossac)+ " --help")
-            port, desc, hwid, isbootloader = self.serial.getBootloaderBoard()
-            print(port)
-            time.sleep(1)
-            if isbootloader == True:
-                break
-            try_count = try_count + 1
-            if try_count == 5:
-                do_bossac = False
-                break
-
-        if do_bossac == True:
-            name, version, url = self.serial.getBoardByPort(port)
-            ardupybin = ""
-            if len(args) > 0:
-                ardupybin = args[0]
-                if not os.path.exists(ardupybin):
-                    log.warning('The path of firmware didn\'t exists!')
-                    return ERROR
-            elif options.origin == True:
-                firmwaredir = str(Path(parser.user_config_dir +"/deploy/firmware/"+name.replace(' ', '_')))
-                if not os.path.exists(firmwaredir):
-                    os.makedirs(firmwaredir)
-                ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
-                if not os.path.exists(ardupybin):
-                    downloader = Downloader(session, progress_bar="on")
-                    _download_http_url(
-                        link=Link(url),
-                        downloader=downloader,
-                        temp_dir=firmwaredir,
-                        hashes=None)
-            else:
-                ardupybin = str(Path(parser.user_config_dir +"/deploy/Ardupy.bin"))
-
+        if options.port == "":
+            port, desc, hwid, isbootloader = self.serial.getAvailableBoard()
+            self.port = port
         else:
-            log.warning("Sorry, the device you should have is not plugged in.")
+            port = options.port
+        
+        if port == None:
+            log.error("Sorry, the device you should have is not plugged in.")
             return ERROR
+        
+        board_id = self.serial.getBoardByPort(self.port)
+        flash_tools = parser.get_flash_tool_by_id(board_id)
+        print(flash_tools)
+        flash_command = parser.get_flash_command_by_id(board_id, self.port, '1.bin')
+        print(flash_command)
+
+        # try_count = 0
+        # do_bossac = True
+        # while True:
+        #     stty = self.stty
+        #     print(stty)
+        #     if stty != "echo not support":
+        #         os.system(stty % 1200)
+        #     #os.system(str(bossac)+ " --help")
+        #     port, desc, hwid, isbootloader = self.serial.getBootloaderBoard()
+        #     time.sleep(1)
+        #     if isbootloader == True:
+        #         break
+        #     try_count = try_count + 1
+        #     if try_count == 5:
+        #         do_bossac = False
+        #         break
+
 
         return SUCCESS

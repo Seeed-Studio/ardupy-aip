@@ -94,11 +94,11 @@ class SerialUtils(object):
             #print(hwid)
             if ii != -1:
                 for b in  parser.boards:
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["USB"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":False})
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["USB"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                          list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
@@ -113,7 +113,7 @@ class SerialUtils(object):
             #print(hwid)
             if ii != -1:
                 for b in  parser.boards:
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["USB"]["bootloader"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
@@ -129,11 +129,11 @@ class SerialUtils(object):
             if ii != -1:
                 for b in  parser.boards:
                     
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["USB"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, False
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["USB"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
@@ -157,11 +157,11 @@ class SerialUtils(object):
                 for b in  parser.boards:
                     if b["name"] != designated:
                         continue
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["USB"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":False})
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["USB"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
@@ -179,11 +179,11 @@ class SerialUtils(object):
                 for b in  parser.boards:
                     if b["name"] != designated:
                         continue
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["USB"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, False
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["USB"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
@@ -207,10 +207,10 @@ class SerialUtils(object):
             #print(hwid)
             if ii != -1:
                 for b in  parser.boards:
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["USB"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         return (b["name"], b["version"], b["firmware_url"])
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["USB"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return (b["name"], b["version"], b["firmware_url"])
@@ -219,7 +219,7 @@ class SerialUtils(object):
     
     #  def getFirmwareByBoard(self, Board):
     #         for b in  parser.boards:
-    #         (_vid, _pid) = b["appcation"]
+    #         (_vid, _pid) = b["application"]
     #         if (_vid, _pid) == (vid, pid):
     #              return (b["version"], b["Firmware_url"])
     #         (_vid, _pid) = b["bootloader"]

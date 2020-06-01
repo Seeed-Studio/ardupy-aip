@@ -68,9 +68,9 @@ class Parser(object):
             self.config_file = open(self.config_file_path, 'w+')
             self.cp = ConfigParser()
             self.cp.add_section('board')
-            self.cp.set("board", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
+            self.cp.set("board", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.add_section('library')
-            self.cp.set("library", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/library_seeeduino_temp_ardupy_index.json")
+            self.cp.set("library", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.write(self.config_file)
         
         self.boards = []
@@ -185,16 +185,21 @@ class Parser(object):
                                 package.update(path)
                                 self.packages.append(package)
                                 for _board in _platform['board']:
-                                    _board.update(id)
+                                    _package_id = {'package_id': package['id']}
+                                    _board_id = {'id': len(self.boards)}
+                                    _board.update(_package_id)
+                                    _board.update(_board_id)
                                     self.boards.append(_board)
                                 platform_id += 1
                             package_id +=1 
                 except Exception as e:
+                    log.error('asd')
                     log.error(e)
 
     def get_archiveFile_by_id(self, id):
         try:
-            _package = self.packages[id]
+            _package_id = self.boards[id]['package_id']
+            _package = self.packages[_package_id]
             package_id = _package['package']
             platform_id = _package['platform']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
@@ -225,9 +230,10 @@ class Parser(object):
         
         return None
     
-    def get_toolsDependencies_by_id(self, id):
+    def get_toolsDependencies_by_id(self, board_id):
         try:
-            _package = self.packages[id]
+            _package_id = self.boards[board_id]['package_id']
+            _package = self.packages[_package_id]
             package_id = _package['package']
             platform_id = _package['platform']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
@@ -239,10 +245,11 @@ class Parser(object):
         
         return None
     
-    def get_toolsDependencies_url_by_id(self, id):
+    def get_toolsDependencies_url_by_id(self, board_id):
         dependencies = []
         try:
-            _package = self.packages[id]
+            _package_id = self.boards[board_id]['package_id']
+            _package = self.packages[_package_id]
             package_id = _package['package']
             platform_id = _package['platform']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
@@ -263,14 +270,91 @@ class Parser(object):
             log.error(e) 
         
         return None
-        
     
+    def get_ardupycore_dir_by_id(self, board_id):
+        archiveFile = parser.get_archiveFile_by_id(board_id)
+        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        return  ardupycoredir
+    
+    def get_ardupycoer_tool_dir_by_id(self, board_id):
+        archiveFile = parser.get_archiveFile_by_id(board_id)
+        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        tooldir = str(Path(ardupycoredir, archiveFile['package'], 'tools'))
+        return  tooldir
+
+    def get_flash_tool_by_id(self, board_id):
+        flash_tool_dir = ""
+        tool_dir = self.get_ardupycoer_tool_dir_by_id(board_id)
+        try:
+            _package_id = self.boards[board_id]['package_id']
+            _package = self.packages[_package_id]
+            _flash = self.boards[board_id]['flash']
+            package_id = _package['package']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                flashs = json_dict['packages'][package_id]['flash']
+                for flash in flashs:
+                        flash_tool_dir = str(Path(tool_dir, flash['tools'], flash['version']))
+        except Exception as e:
+            log.error(e) 
+        
+        if flash_tool_dir == "":
+            log.error("Can't find flash tool, please check package_index.json!")
+        
+        return flash_tool_dir
+
+    def get_flash_command_by_id(self, board_id, port, firmware):
+        flash_command = ""
+        try:
+            _package_id = self.boards[board_id]['package_id']
+            _package = self.packages[_package_id]
+            _flash = self.boards[board_id]['flash']
+            package_id = _package['package']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                flashs = json_dict['packages'][package_id]['flash']
+                for flash in flashs:
+                    if(flash['name'] == _flash):
+                        if self.system == "i686-mingw32":
+                            tool = flash['tools']+'.exe'
+                        flash_command = tool + flash['command']
+                        flash_command = flash_command.format(str(port), str(firmware))
+        except Exception as e:
+            log.error(e) 
+        
+        if flash_command == "":
+            log.error("Can't find flash tool depency, please check package_index.json!")
+
+        return flash_command
+
+    def get_flash_isTouch_by_id(self, board_id, port, firmware):
+        isTouch = False
+        try:
+            _package_id = self.boards[board_id]['package_id']
+            _package = self.packages[_package_id]
+            _flash = self.boards[board_id]['flash']
+            package_id = _package['package']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                flashs = json_dict['packages'][package_id]['flash']
+                for flash in flashs:
+                    isTouch = flash["isTouch"]
+                    print(isTouch)
+        except Exception as e:
+            log.error(e) 
+        
+        return isTouch
+
+    def get_deploy_dir_by_id(self, board_id):
+        board = self.boards[board_id]['name'].replace(' ', '_')
+        deploy_dir = str(Path(self.user_config_dir, 'deploy', board))
+        return deploy_dir
 
 parser = Parser()
 
 def main():
-    parser.update_loacl_board_json()
-    print(parser.boards)
+    pass
+    print(parser.get_toolsDependencies_url_by_id(0))
 
 if __name__ == '__main__':
     main()
