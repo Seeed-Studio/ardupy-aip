@@ -42,6 +42,7 @@ import stat
 from aip.utils import readonly_handler
 from aip.parser import parser
 from aip.logger import log
+from aip.utils import dealGenericOptions
 import shutil
 from pathlib import Path
 
@@ -60,6 +61,7 @@ class uninstallCommand(Command):
         pass
           
     def run(self, options, args):
+        dealGenericOptions()
         moduledir = Path(parser.user_config_dir, "modules")
         for package in args:
                 log.debug(package[package.find("/")+1:])

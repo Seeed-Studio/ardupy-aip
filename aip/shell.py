@@ -69,6 +69,7 @@ from pathlib import Path
 from mp import mpfshell as mpf
 import argparse
 from aip.utils import SerialUtils
+from aip.utils import dealGenericOptions
 import logging
 
 
@@ -84,8 +85,9 @@ class shellCommand(Command):
     summary = "Integrated mpfshell for interaction with board."
     ignore_require_venv = True
     port = ""
-
+    
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(shellCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
             '-c', 

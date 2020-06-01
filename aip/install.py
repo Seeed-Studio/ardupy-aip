@@ -39,6 +39,7 @@ from pip._internal.operations.prepare import (
 
 import os
 from aip.utils import readonly_handler
+from aip.utils import dealGenericOptions
 from aip.command import *
 from aip.logger import log
 import shutil
@@ -55,6 +56,7 @@ class installCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(installCommand, self).__init__(*args, **kw)
 
         self.cmd_opts.add_option(

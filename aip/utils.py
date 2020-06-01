@@ -29,7 +29,21 @@ import json
 import demjson
 import stat
 
+from pip._internal.cli import cmdoptions
+from functools import partial
 from aip.parser import parser
+from optparse import Option
+
+board  = partial(
+    Option,
+    '-b', '--board',
+    dest='board',
+    action='store',
+    default="",
+    help='The name of the ArduPy board.',
+)  # type: Callable[..., Option]
+
+
 
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
@@ -43,6 +57,12 @@ else:
 def readonly_handler(func, path, execinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
+
+
+def dealGenericOptions():
+    cmdoptions.general_group['options'].insert(6, board)
+    cmdoptions.general_group['options'].remove(cmdoptions.isolated_mode)
+    cmdoptions.general_group['options'].remove(cmdoptions.no_python_version_warning)
 
 def windows_full_port_name(portname):
     # Helper function to generate proper Windows COM port paths.  Apparently
@@ -98,7 +118,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return None
+        return None, None, None, None
     
     def getAvailableBoard(self):
         for info in self.getAllPortInfo():
@@ -118,7 +138,7 @@ class SerialUtils(object):
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        None
+        return None, None, None, None
     
     def listBoard(self):
         list = [];

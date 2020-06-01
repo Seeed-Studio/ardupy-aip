@@ -32,6 +32,8 @@ from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
 from pip._internal.commands.list import tabulate
 from urllib.parse import urlparse
+from aip.utils import dealGenericOptions
+from aip.parser import parser
 
 from pip._internal.operations.prepare import (
     _download_http_url,
@@ -63,6 +65,7 @@ class listCommand(Command):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(listCommand, self).__init__(*args, **kw)
 
 
@@ -82,7 +85,7 @@ class listCommand(Command):
 
     def run(self, options, args):
         header = ["Package", "Version", "Location"]
-        moduledir = Path(user_config_dir, "modules")
+        moduledir = Path(parser.user_config_dir, "modules")
         libs = []
 
         for library in os.listdir(moduledir):
@@ -91,9 +94,9 @@ class listCommand(Command):
                 with open(library_json_location, 'r') as package_json:
                     package_json_dict = json.load(package_json)
                     lib = [library, package_json_dict['version'], package_json_dict['repository']['url']]
+                    libs.append(lib)
             except Exception as e:
                 pass
-            libs.append(lib)
         if len(libs) >= 1:
             self.output_package_listing_columns(libs, header)
         return SUCCESS

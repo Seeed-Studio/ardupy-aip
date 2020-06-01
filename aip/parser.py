@@ -68,9 +68,9 @@ class Parser(object):
             self.config_file = open(self.config_file_path, 'w+')
             self.cp = ConfigParser()
             self.cp.add_section('board')
-            self.cp.set("board", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
+            self.cp.set("board", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
             self.cp.add_section('library')
-            self.cp.set("library", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
+            self.cp.set("library", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/library_seeeduino_temp_ardupy_index.json")
             self.cp.write(self.config_file)
         
         self.boards = []
@@ -269,7 +269,8 @@ class Parser(object):
 parser = Parser()
 
 def main():
-    print(parser.get_toolsDependencies_url_by_id(0))
+    parser.update_loacl_board_json()
+    print(parser.boards)
 
 if __name__ == '__main__':
     main()

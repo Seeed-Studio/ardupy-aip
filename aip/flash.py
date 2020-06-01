@@ -32,6 +32,7 @@ from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
 from aip.parser import parser
 from aip.logger import log
+from aip.utils import dealGenericOptions
 
 from pip._internal.operations.prepare import (
     _download_http_url,
@@ -56,6 +57,7 @@ class flashCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(flashCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
             '-p', '--port',
