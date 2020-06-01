@@ -57,20 +57,26 @@ class uninstallCommand(Command):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(uninstallCommand, self).__init__(*args, **kw)
         pass
           
     def run(self, options, args):
-        dealGenericOptions()
+        if len(args) == 0:
+            log.warning("Please enter the name of the library!")
+            log.info('Usage:\n\r    aip uninstall seeed-ardupy-ultrasonic-sensor')
+            return ERROR
+
         moduledir = Path(parser.user_config_dir, "modules")
         for package in args:
                 log.debug(package[package.find("/")+1:])
                 if os.path.exists(str(Path(moduledir, package[package.find("/") + 1:]))):
                     shutil.rmtree(
                         str(Path(moduledir, package[package.find("/") + 1:])), onerror=readonly_handler)
+                    log.info("Uninstall " + package + " succeeded.")
                 else:
                     log.warning(package[package.find("/") +1:] + " not exists!")
-        
+
         return SUCCESS
 
 

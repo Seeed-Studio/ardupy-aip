@@ -34,6 +34,7 @@ from pip._internal.commands.list import tabulate
 from urllib.parse import urlparse
 from aip.utils import dealGenericOptions
 from aip.parser import parser
+import json
 
 from pip._internal.operations.prepare import (
     _download_http_url,
@@ -96,7 +97,9 @@ class listCommand(Command):
                     lib = [library, package_json_dict['version'], package_json_dict['repository']['url']]
                     libs.append(lib)
             except Exception as e:
+                e
                 pass
+
         if len(libs) >= 1:
             self.output_package_listing_columns(libs, header)
         return SUCCESS
