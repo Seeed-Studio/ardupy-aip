@@ -59,6 +59,59 @@ class coreCommand(RequirementCommand):
     def __init__(self, *args, **kw):
         dealGenericOptions()
         super(coreCommand, self).__init__(*args, **kw)
+    
+
+     def downloadAll(self, session):
+            board_id = parser.get_id_by_name(self.board)
+        archiveFile = parser.get_archiveFile_by_id(board_id)
+        downloader = Downloader(session, progress_bar="on")
+        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        if os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
+            if not os.path.exists(ardupycoredir):
+                shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'])), onerror=readonly_handler)
+                time.sleep(1)
+                os.makedirs(ardupycoredir)
+                log.info('Downloading ' + archiveFile['archiveFileName'] + '...')
+                try:
+                    unpack_url(
+                        Link(archiveFile['url']),
+                        ardupycoredir,
+                        downloader=downloader,
+                        download_dir=None,
+                    )
+                except Exception as e:
+                    log.error(e)
+                    os.remove(ardupycoredir)
+        else:
+            os.makedirs(ardupycoredir)
+            log.info('Downloading ' + archiveFile['archiveFileName'])
+            try:
+                unpack_url(
+                    Link(archiveFile['url']),
+                    ardupycoredir,
+                    downloader=downloader,
+                    download_dir=None,
+                )
+            except Exception as e:
+                log.error(e)
+                os.remove(ardupycoredir)
+        
+        toolsDependencies = parser.get_toolsDependencies_url_by_id(board_id)
+        for tool in toolsDependencies:
+            tooldir = str(Path(ardupycoredir, 'Arduino', 'tools', tool['name'],  tool['version']))
+            if not os.path.exists(tooldir):
+                log.info('Downloading '+ tool['name'] + '...')
+                os.makedirs(tooldir)
+                try:
+                    unpack_url(
+                        Link(tool['url']),
+                        tooldir,
+                        downloader=downloader,
+                        download_dir=None,
+                        )
+                except Exception as e:
+                    log.error(e)
+                    os.remove(tooldir)
           
     def run(self, options, args):
      

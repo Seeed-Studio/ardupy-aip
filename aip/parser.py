@@ -68,7 +68,7 @@ class Parser(object):
             self.config_file = open(self.config_file_path, 'w+')
             self.cp = ConfigParser()
             self.cp.add_section('board')
-            self.cp.set("board", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
+            self.cp.set("board", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
             self.cp.add_section('library')
             self.cp.set("library", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.write(self.config_file)
@@ -193,7 +193,6 @@ class Parser(object):
                                 platform_id += 1
                             package_id +=1 
                 except Exception as e:
-                    log.error('asd')
                     log.error(e)
 
     def get_archiveFile_by_id(self, id):
@@ -349,12 +348,31 @@ class Parser(object):
         board = self.boards[board_id]['name'].replace(' ', '_')
         deploy_dir = str(Path(self.user_config_dir, 'deploy', board))
         return deploy_dir
+    
+    def get_build_pram_by_id(self, board_id):
+        try:
+            _package_id = self.boards[board_id]['package_id']
+            _package = self.packages[_package_id]
+            _build = self.boards[board_id]['build']
+            package_id = _package['package']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                builds = json_dict['packages'][package_id]['build']
+                for build in builds:
+                    if(build['name'] == _build):
+                        return build
+        except Exception as e:
+            log.error(e) 
+    
+        log.error("Can't find build pram");
+
+        return ""
 
 parser = Parser()
 
 def main():
-    pass
-    print(parser.get_toolsDependencies_url_by_id(0))
+    #parser.update_loacl_board_json()
+    print(parser.get_build_pram_by_id(1))
 
 if __name__ == '__main__':
     main()

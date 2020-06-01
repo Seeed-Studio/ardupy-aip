@@ -36,20 +36,17 @@ from pip._internal.operations.prepare import (
     unpack_url,
 )
 import os
-import time
-
-from tempfile import mktemp
-from pathlib import Path
+from aip.variable import *
+from tempfile import *
+from aip.utils import SerialUtils
+from aip.utils import dealGenericOptions
+from aip.logger import log
+from aip.parser import parser
 import random
 import shutil
 import sys
+from pathlib import Path
 import re
-
-from aip.utils import SerialUtils
-from aip.utils import readonly_handler
-from aip.logger import log
-from aip.parser import parser
-from aip.variable import *
 
 
 class buildCommand(RequirementCommand):
@@ -63,15 +60,8 @@ class buildCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
-        super(buildCommand, self).__init__(*args, **kw)
-
-        self.cmd_opts.add_option(
-            '-b', '--board',
-            dest='board',
-            action='store',
-            default="",
-            help='The name of the ArduPy board.')
-        
+        dealGenericOptions()
+        super(buildCommand, self).__init__(*args, **kw)        
         self.cmd_opts.add_option(
             '-l', '--list',
             dest='list',
@@ -89,11 +79,7 @@ class buildCommand(RequirementCommand):
         self.parser.insert_option_group(0, index_opts)
         self.srcfile = []
         self.header = ""
-        self.board = "wio_terminal"
         self.arduinoCoreVersion = "1.7.1"
-        self.gcc = str(Path(parser.user_config_dir+gcc_48))
-        self.cpp = str(Path(parser.user_config_dir+cpp_48))
-        self.headerlist = []
 
     def endWith(self, s, *endstring):
         array = map(s.endswith, endstring)
@@ -116,12 +102,12 @@ class buildCommand(RequirementCommand):
         return wants_files
 
     def buildFarm(self, outputdir):
-        gcc_def = grove_ui_gcc_def.format(
-            self.board.upper()).replace("                    ", "")
+        gcc_def = gcc_defs[self.architecture].format(
+            self.board_name.upper(), self.usb_vid, self.usb_pid, self.board_name).replace("                    ", "")
         output_str = "   -o {0}   -c {1}"
-        gcc_flag = grove_ui_gcc_flag
+        gcc_flag = gcc_flags[self.architecture]
         gcc_cmd = self.gcc + gcc_def + self.headers + gcc_flag + output_str
-        cpp_cmd = self.cpp + gcc_def + self.headers + grove_ui_cpp_flag + output_str
+        cpp_cmd = self.cpp + gcc_def + self.headers + cpp_flags[self.architecture] + output_str
         output_o = []
         # build all of source file
         for f in self.srcfile:
@@ -140,8 +126,8 @@ class buildCommand(RequirementCommand):
                 output_o.append(out)
                 os.system(cmd)
 
-        gcc_ld_flag = grove_ui_gcc_ld_flag.format(parser.user_config_dir+"/ardupycore", " ".join(
-            output_o), outputdir, self.board).replace("                        ", "")
+        gcc_ld_flag = ld_flags[self.architecture].format(parser.user_config_dir+"/ardupycore", " ".join(
+            output_o), outputdir, self.part_family).replace("                        ", "")
         print(self.gcc+gcc_ld_flag)
         os.system(self.gcc+gcc_ld_flag)
 
@@ -204,12 +190,12 @@ const mp_obj_module_t mp_module_arduino = {
 
         # makeversionhdr.make_version_header(str(Path(genhdr,"mpversion.h")))
         shutil.copyfile(str(Path(
-            parser.user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/mpversion.h")), str(Path(genhdr, "mpversion.h")))
-        shutil.copyfile(str(Path(parser.user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/moduledefs.h")),
+            parser.user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.part_family+"/mpversion.h")), str(Path(genhdr, "mpversion.h")))
+        shutil.copyfile(str(Path(parser.user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/"+self.part_family+"/moduledefs.h")),
                         str(Path(genhdr, "moduledefs.h")))
 
         mp_generate_flag = micropython_CFLAGS.format(str(Path(parser.user_config_dir+"/ardupycore/ArduPy")),
-                                                     str(Path(parser.user_config_dir+"/ardupycore/ArduPy/boards/"+self.board)))
+                                                     str(Path(parser.user_config_dir+"/ardupycore/ArduPy/boards/"+self.part_family)))
 
         # remove cpp files
         # todo； only scan file start wirh "mod_ardupy_"
@@ -223,7 +209,7 @@ const mp_obj_module_t mp_module_arduino = {
             extern_mp_src.append(f)
 
         gen_i_last = self.gcc + "-E -DARDUPY_MODULE -DNO_QSTR " + mp_generate_flag + " ".join(extern_mp_src) + \
-            "  " + str(Path(parser.user_config_dir+"/ardupycore/ArduPy/boards/"+self.board+"/mpconfigport.h")) + \
+            "  " + str(Path(parser.user_config_dir+"/ardupycore/ArduPy/mpconfigport.h")) + \
             " > " + str(Path(genhdr, "qstr.i.last"))
         log.debug(gen_i_last)
         os.system(gen_i_last)
@@ -246,7 +232,7 @@ const mp_obj_module_t mp_module_arduino = {
             makeqstrdefs.process_file(infile)
 
         makeqstrdefs.cat_together()
-        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(parser.user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/qstrdefs.preprocessed.h")),
+        qcfgs, qstrs = makeqstrdata.parse_input_headers([str(Path(parser.user_config_dir+"/ardupycore/Seeeduino/tools/genhdr/" + self.part_family+ "/qstrdefs.preprocessed.h")),
                                                          str(Path(genhdr, "qstrdefs.collected.h"))])
 
         qstrdefs_generated_h = open(str(Path(genhdr, "qstrdefs.generated.h")), "w")
@@ -277,165 +263,8 @@ const mp_obj_module_t mp_module_arduino = {
 
         return genhdr
 
-    def downloadAll(self, session):
-        board_id = parser.get_id_by_name(self.board)
-        archiveFile = parser.get_archiveFile_by_id(board_id)
-        downloader = Downloader(session, progress_bar="on")
-        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
-        if os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
-            if not os.path.exists(ardupycoredir):
-                shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'])), onerror=readonly_handler)
-                time.sleep(1)
-                os.makedirs(ardupycoredir)
-                log.info('Downloading ' + archiveFile['archiveFileName'] + '...')
-                try:
-                    unpack_url(
-                        Link(archiveFile['url']),
-                        ardupycoredir,
-                        downloader=downloader,
-                        download_dir=None,
-                    )
-                except Exception as e:
-                    log.error(e)
-                    os.remove(ardupycoredir)
-        else:
-            os.makedirs(ardupycoredir)
-            log.info('Downloading ' + archiveFile['archiveFileName'])
-            try:
-                unpack_url(
-                    Link(archiveFile['url']),
-                    ardupycoredir,
-                    downloader=downloader,
-                    download_dir=None,
-                )
-            except Exception as e:
-                log.error(e)
-                os.remove(ardupycoredir)
-        
-        toolsDependencies = parser.get_toolsDependencies_url_by_id(board_id)
-        for tool in toolsDependencies:
-            tooldir = str(Path(ardupycoredir, 'Arduino', 'tools', tool['name'],  tool['version']))
-            if not os.path.exists(tooldir):
-                log.info('Downloading '+ tool['name'] + '...')
-                os.makedirs(tooldir)
-                try:
-                    unpack_url(
-                        Link(tool['url']),
-                        tooldir,
-                        downloader=downloader,
-                        download_dir=None,
-                        )
-                except Exception as e:
-                    log.error(e)
-                    os.remove(tooldir)
-
-
-    def clean(self):
-        board_id = parser.get_id_by_name(self.board)
-        archiveFile = parser.get_archiveFile_by_id(board_id)
-        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))
-        if os.path.exists(ardupycoredir):
-            try:
-                shutil.rmtree(ardupycoredir)
-            except OSError as error:
-                log.warning("Directory '%s remove failed' " % ardupycoredir)
-                log.warning(error)
-                
-    def get_arduinocore_version(self):
-        ardupycoredir = str(Path(parser.user_config_dir+"/ardupycore/Seeeduino/hardware/samd"))
-        for file in os.listdir(ardupycoredir):
-            if len(file.split('.')) == 3:
-                self.arduinoCoreVersion = file
-
     def run(self, options, args):
-        
-        if options.list == True:
-            ser = SerialUtils()
-            print(ser.listBoard())
-            return SUCCESS
-        
-        if 'clean' in args:
-            self.clean()
-            return SUCCESS
 
-        if options.board != "":
-            self.board = options.board
-
-        session = self.get_default_session(options)
-        
-        # setup deploy dir
-        deploydir = str(Path(parser.user_config_dir, "deploy"))
-        if not os.path.exists(deploydir):
-            os.makedirs(deploydir)
-        # create build dir, This folder will be deleted after compilation
-        builddir = mktemp()
-        os.makedirs(builddir)
-
-        self.downloadAll(session)
-        # self.get_arduinocore_version()
-        # # Converts the header file to the absolute path of the current system
-        # for h in ardupycore_headers:
-        #     # add Arduino Core version
-        #     if h[0:35] == "/ardupycore/Seeeduino/hardware/samd":
-        #         h = h.format(self.arduinoCoreVersion)
-        #     self.headerlist.append(str(Path(parser.user_config_dir+h)))
-        # self.headerlist.append(
-        #     str(Path(parser.user_config_dir+board_headers+self.board)))
-
-        # # setup ardupy modules dir
-        # moduledir = str(Path(parser.user_config_dir, "modules"))
-        # if not os.path.exists(moduledir):
-        #     os.makedirs(moduledir)
-        # modules = os.listdir(moduledir)
-        # if modules:
-        #     for m in modules:
-        #         # Gets the source files for all modules
-        #         for f in self.fileEndWith(os.path.join(parser.user_config_dir+"/modules/", m), '.cpp', '.c'):
-        #             self.srcfile.append(str(Path(f)))
-        #         # Sets the root directory of the module to be where the header file is found
-        #         for r, d, f in os.walk(str(Path(parser.user_config_dir+"/modules/" + m))):
-        #             if r.find('.git') == -1 and r.find("examples") == -1:
-        #                 self.headerlist.append(r)
-
-        # # Convert the necessary files in ardupycore into the absolute path of the system.
-        # for mp_file in mp_needful_file:
-        #     self.srcfile.append(str(Path(parser.user_config_dir+mp_file)))
-
-        # self.generatedInitfile(builddir)
-
-        # # Convert to the required format for GCC
-        # self.generatedQstrdefs(builddir)
-        # self.headers = "-I" + " -I".join(self.headerlist)
-
-        # # Compile all source files
-        # self.buildFarm(builddir)
-
-        # firmware_path = str(Path(str(deploydir) + "/Ardupy.bin"))
-
-        # #remove the old firmware
-        # if os.path.exists(firmware_path):
-        #     os.remove(firmware_path)
-
-        # # Convert ELF files to binary files
-        # objcopy_cmd = str(Path(parser.user_config_dir + gcc_48_objcopy)) + "-O binary " \
-        #     + str(Path(builddir + "/Ardupy")) + " " \
-        #     + firmware_path
-
-        # log.debug(objcopy_cmd)
-        # os.system(objcopy_cmd)
-
-        # # Print size information
-        # os.system(str(Path(parser.user_config_dir + gcc_48_size)) +
-        #           " -A " + str(Path(builddir + "/Ardupy")))
-
-        # # delete build dir
-        # shutil.rmtree(builddir)
-
-        # if os.path.exists(firmware_path):
-        #     log.info('Firmware path: '+ firmware_path)
-        #     log.info('Usage:\n\r    aip flash')
-        # else:
-        #     raise Exception(print('compile error'))
-        #     #return ERRO
-        
+       
+      
         return SUCCESS
