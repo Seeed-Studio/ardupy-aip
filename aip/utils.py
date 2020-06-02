@@ -216,6 +216,26 @@ class SerialUtils(object):
                         return (b["name"], b["version"], b["firmware_url"])
         return ""
     
+    def getBoardIdByPort(self, _port):
+        for info in self.getAllPortInfo():
+            port, desc, hwid = info 
+
+            if _port != port:
+                continue
+
+            ii = hwid.find("VID:PID")
+            #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
+            #print(hwid)
+            if ii != -1:
+                for b in  parser.boards:
+                    (vid, pid) = b["hwids"]["application"]
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        return (b["id"])
+                    (vid, pid) = b["hwids"]["bootloader"] 
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        return (b["id"])
+        return ""
     
     #  def getFirmwareByBoard(self, Board):
     #         for b in  parser.boards:
