@@ -50,6 +50,7 @@ from aip.shell import shellCommand
 from aip.board import boardCommand
 from aip.list import listCommand
 from aip.uninstall import uninstallCommand
+from aip.core import coreCommand
 from aip import __version__
 
 import sys
@@ -115,6 +116,7 @@ class HelpCommand(Command):
 
 
 commands_order = [
+    coreCommand,
     buildCommand,
     listCommand,
     installCommand,

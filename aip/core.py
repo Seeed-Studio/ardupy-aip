@@ -45,6 +45,7 @@ from aip.logger import log
 import shutil
 import json
 from pathlib import Path
+import time
 
 class coreCommand(RequirementCommand):
     """
@@ -59,10 +60,15 @@ class coreCommand(RequirementCommand):
     def __init__(self, *args, **kw):
         dealGenericOptions()
         super(coreCommand, self).__init__(*args, **kw)
-    
 
-     def downloadAll(self, session):
-            board_id = parser.get_id_by_name(self.board)
+        index_opts = cmdoptions.make_option_group(
+            cmdoptions.index_group,
+            self.parser,
+        )
+
+
+    def downloadAll(self, session):
+        board_id = 0
         archiveFile = parser.get_archiveFile_by_id(board_id)
         downloader = Downloader(session, progress_bar="on")
         ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
@@ -98,7 +104,7 @@ class coreCommand(RequirementCommand):
         
         toolsDependencies = parser.get_toolsDependencies_url_by_id(board_id)
         for tool in toolsDependencies:
-            tooldir = str(Path(ardupycoredir, 'Arduino', 'tools', tool['name'],  tool['version']))
+            tooldir = parser.get_tool_dir_byid(board_id)
             if not os.path.exists(tooldir):
                 log.info('Downloading '+ tool['name'] + '...')
                 os.makedirs(tooldir)
@@ -114,9 +120,8 @@ class coreCommand(RequirementCommand):
                     os.remove(tooldir)
           
     def run(self, options, args):
-     
-            return ERROR
-            
+        session = self.get_default_session(options)
+        self.downloadAll(session)
         return SUCCESS
 
 
