@@ -68,9 +68,9 @@ class Parser(object):
             self.config_file = open(self.config_file_path, 'w+')
             self.cp = ConfigParser()
             self.cp.add_section('board')
-            self.cp.set("board", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
+            self.cp.set("board", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
             self.cp.add_section('library')
-            self.cp.set("library", "additional_url", "https://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
+            self.cp.set("library", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.write(self.config_file)
         
         self.boards = []
@@ -271,23 +271,56 @@ class Parser(object):
         return None
     
     def get_ardupycore_dir_by_id(self, board_id):
-        archiveFile = parser.get_archiveFile_by_id(board_id)
-        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        archiveFile = self.get_archiveFile_by_id(board_id)
+        ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
         return  ardupycoredir
     
-    def get_ardupycoer_tool_dir_by_id(self, board_id):
-        archiveFile = parser.get_archiveFile_by_id(board_id)
-        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
-        tooldir = str(Path(ardupycoredir, archiveFile['package'], 'tools'))
-        return  tooldir
+    def get_arduino_dir_by_id(self, board_id):
+        ardupycoredir = self.get_ardupycore_dir_by_id(board_id)
+        arduinocoredir = str(Path(ardupycoredir, "Arduino", "hardware", "samd"))
+        for file in os.listdir(arduinocoredir):
+            if len(file.split('.')) == 3:
+                arduinocoredir = str(Path(arduinocoredir, file))
+
+        return  arduinocoredir
+    
+
+    def get_ardupy_dir_by_id(self, board_id):
+        ardupycoredir = self.get_ardupycore_dir_by_id(board_id)
+        ardupydir = str(Path(ardupycoredir, "ArduPy"))
+        return  ardupydir
+
+    def get_ardupy_board_by_id(self, board_id):
+        ardupydir = self.get_ardupy_dir_by_id(board_id);
+        architecture = self.boards[board_id]["architecture"]
+        ardupy_board = str(Path(ardupydir, "boards", architecture))
+        return ardupy_board
+
+    
+    def get_variants_dir_by_id(self, board_id):
+        arduinocoredir = self.get_arduino_dir_by_id(board_id)
+        variants = self.boards[board_id]["variant"]
+        variantsdir = str(Path(arduinocoredir, variants))
+        return variantsdir
+    
+    def get_gender_dir_by_id(self, board_id):
+        tooldir = self.get_tool_dir_by_id(board_id)
+        architecture = self.boards[board_id]["architecture"]
+        genhdrdir = str(Path(tooldir, "genhdr", architecture))
+        return genhdrdir
+
+    def get_tool_dir_by_id(self, board_id):
+        ardupycoredir = self.get_ardupycore_dir_by_id(board_id)
+        tooldir = str(Path(ardupycoredir, 'Arduino', 'tools'))
+        return tooldir
 
     def get_flash_tool_by_id(self, board_id):
         flash_tool_dir = ""
-        tool_dir = self.get_ardupycoer_tool_dir_by_id(board_id)
+        tool_dir = self.get_tool_dir_by_id(board_id)
         try:
             _package_id = self.boards[board_id]['package_id']
             _package = self.packages[_package_id]
-            _flash = self.boards[board_id]['flash']
+            _flash = self.boards[board_id]['architecture']
             package_id = _package['package']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
                 json_dict = json.load(load_f)
@@ -307,7 +340,7 @@ class Parser(object):
         try:
             _package_id = self.boards[board_id]['package_id']
             _package = self.packages[_package_id]
-            _flash = self.boards[board_id]['flash']
+            _flash = self.boards[board_id]['architecture']
             package_id = _package['package']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
                 json_dict = json.load(load_f)
@@ -326,19 +359,18 @@ class Parser(object):
 
         return flash_command
 
-    def get_flash_isTouch_by_id(self, board_id, port, firmware):
+    def get_flash_isTouch_by_id(self, board_id):
         isTouch = False
         try:
             _package_id = self.boards[board_id]['package_id']
             _package = self.packages[_package_id]
-            _flash = self.boards[board_id]['flash']
+            _flash = self.boards[board_id]['architecture']
             package_id = _package['package']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
                 json_dict = json.load(load_f)
                 flashs = json_dict['packages'][package_id]['flash']
                 for flash in flashs:
                     isTouch = flash["isTouch"]
-                    print(isTouch)
         except Exception as e:
             log.error(e) 
         
@@ -353,7 +385,7 @@ class Parser(object):
         try:
             _package_id = self.boards[board_id]['package_id']
             _package = self.packages[_package_id]
-            _build = self.boards[board_id]['build']
+            _build = self.boards[board_id]['architecture']
             package_id = _package['package']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
                 json_dict = json.load(load_f)
@@ -363,16 +395,15 @@ class Parser(object):
                         return build
         except Exception as e:
             log.error(e) 
-    
-        log.error("Can't find build pram");
-
+        log.error("Can't find build pram")
         return ""
+    
 
 parser = Parser()
 
 def main():
     #parser.update_loacl_board_json()
-    print(parser.get_build_pram_by_id(1))
+    print(parser.get_ardupy_board_by_id(0))
 
 if __name__ == '__main__':
     main()
