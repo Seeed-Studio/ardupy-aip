@@ -289,7 +289,6 @@ const mp_obj_module_t mp_module_arduino = {
             port, desc, hwid, isbootloader = self.serial.getAvailableBoard()
             if port != None:
                 _board = self.serial.getBoardByPort(port)
-                print(_board)
                 if _board != "":
                     self.board = _board[0]
             else:
@@ -322,13 +321,14 @@ const mp_obj_module_t mp_module_arduino = {
 
         # Converts the header file to the absolute path of the current system
         # 1 append Arduino Core PATH
+        self.headerlist.append(arduinocoredir)
         for file in os.listdir(arduinocoredir):
             file_path = str(Path(arduinocoredir, file))
             if os.path.isdir(file_path):
                 self.headerlist.append(file_path)
         
         # 2 append Arduino variants PATH
-        self.headerlist.append(parser.get_variants_dir_by_id(self.board_id))
+        self.headerlist.append(parser.get_variant_dir_by_id(self.board_id))
 
         # 3 append Arduino library PATH
         librariesdir =  str(Path(arduinodir, "libraries"))
@@ -345,34 +345,47 @@ const mp_obj_module_t mp_module_arduino = {
         self.headerlist.append(str(Path(parser.get_ardupy_dir_by_id(self.board_id), "MicroPython")))
         # 5 append moudules PATh
         # TODO
+        moduledir = str(Path(parser.user_config_dir, "modules"))
+        if not os.path.exists(moduledir):
+            os.makedirs(moduledir)
+        modules = os.listdir(moduledir)
+        if modules:
+            for m in modules:
+                # Gets the source files for all modules
+                for f in self.fileEndWith(os.path.join(str(Path(moduledir, m))), '.cpp', '.c'):
+                    self.srcfile.append(str(Path(f)))
+                # Sets the root directory of the module to be where the header file is found
+                for r, d, f in os.walk(str(Path(moduledir, m))):
+                    if r.find('.git') == -1 and r.find("examples") == -1:
+                        self.headerlist.append(r)
 
-        # Convert the necessary files in ardupycore into the absolute path of the system.
+        # 6 Convert the necessary files in ardupycore into the absolute path of the system.
         self.srcfile.append(str(Path(parser.get_ardupy_dir_by_id(self.board_id), "MicroPython", "py", "objmodule.c")))
         self.srcfile.append(str(Path(parser.get_ardupy_dir_by_id(self.board_id), "MicroPython", "py", "parse.c")))
         self.srcfile.append(str(Path(parser.get_ardupy_dir_by_id(self.board_id), "MicroPython", "py", "qstr.c")))
     
 
-        # generatrd Init file for binding
+        # 7 generatrd Init file for binding
         self.generatedInitfile(builddir)
 
-        # Convert to the required format for GCC
+        # 8 Convert to the required format for GCC
         self.generatedQstrdefs(builddir)
 
-        #6 append build temp dir
+        # 9 append build temp dir
 
-
-        self.headers = "-I." + " -I".join(self.headerlist)
+        # 10 append build temp dir
+        self.headers = "-I" + " -I".join(self.headerlist)
         self.headerlist.append(str(Path(builddir, "genhdr")))
 
-        #build firmware
+        # 11 build firmware
         self.buildFirmware(builddir)
 
+        # 12 remove the old firmware
         firmware_path = str(Path(str(deploydir), "Ardupy.bin"))
-
-        #remove the old firmware
         if os.path.exists(firmware_path):
             os.remove(firmware_path)
 
+        # 13 convert elf to bin
         self.objcopy_cmd = self.objcopy + " -O binary " \
             + str(Path(builddir + "/Ardupy")) + " " \
             + firmware_path
@@ -380,10 +393,12 @@ const mp_obj_module_t mp_module_arduino = {
         print(self.objcopy_cmd)
         os.system(self.objcopy_cmd)
         
+        # 14 print information
         self.sizetool_cmd = self.sizetool + " -A " + str(Path(builddir + "/Ardupy"))
 
         os.system(self.sizetool_cmd)
-   
+
+        # 15 print information
         # delete build dir
         shutil.rmtree(builddir)
 

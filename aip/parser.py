@@ -299,11 +299,11 @@ class Parser(object):
         return ardupy_board
 
     
-    def get_variants_dir_by_id(self, board_id):
+    def get_variant_dir_by_id(self, board_id):
         arduinocoredir = self.get_arduino_dir_by_id(board_id)
-        variants = self.boards[board_id]["variant"]
-        variantsdir = str(Path(arduinocoredir, variants))
-        return variantsdir
+        variant = self.boards[board_id]["variant"]
+        variantdir = str(Path(arduinocoredir, "variants", variant))
+        return variantdir
     
     def get_gender_dir_by_id(self, board_id):
         tooldir = self.get_tool_dir_by_id(board_id)
