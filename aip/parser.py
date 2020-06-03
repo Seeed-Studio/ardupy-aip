@@ -26,6 +26,7 @@
 from configparser import ConfigParser
 from pathlib import Path
 import urllib.request
+import sys
 import os
 import re
 import json
@@ -72,11 +73,12 @@ class Parser(object):
             self.cp.add_section('library')
             self.cp.set("library", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.write(self.config_file)
+            self.update_loacl_board_json()
+            #self.update_loacl_library_json()
         
         self.boards = []
         self.packages = []
-        #self.update_loacl_board_json()
-        #self.update_loacl_library_json()
+       
         self.parser_all_json()
         self.system = get_platform()
     

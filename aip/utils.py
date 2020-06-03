@@ -25,6 +25,7 @@
 
 import re
 import os
+import sys
 import json
 import demjson
 import stat
@@ -32,6 +33,7 @@ import stat
 from pip._internal.cli import cmdoptions
 from functools import partial
 from aip.parser import parser
+from aip.logger import log
 from optparse import Option
 
 board  = partial(
@@ -79,6 +81,9 @@ def windows_full_port_name(portname):
 class SerialUtils(object):
     def __init__(self):
         super().__init__()
+        if len(parser.boards) == 0:
+            log.error("Unable to find any ardupy boards, please refer to aip core!")
+            sys.exit(1)
         
     
     def getAllPortInfo(self):
