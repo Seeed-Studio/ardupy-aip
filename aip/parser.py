@@ -107,8 +107,6 @@ class Parser(object):
         else:
             log.error(url + " is not a url.")
             return False
-    
-
 
     def get_library_additional_url(self):
         url = self.cp.get("library", "additional_url")
@@ -162,32 +160,55 @@ class Parser(object):
                 continue
             else:
                 log.info("done!")
+
+    def get_core_id(self, arg):
+        _core = arg.split(":")
+        if len(_core) < 2:
+            return None 
+        package = _core[0]
+        platform = _core[1]
+        version = None
+        if len(_core) >= 3:
+            version = _core[2]
+      
+        for _package in self.packages:
+            if package == _package['package_name'] and platform == _package['arch'] and (version == None or version == _package["version"]):
+                return _package["id"]
+        
+        return None
     
     def parser_all_json(self): #parser all the json
         for path in os.listdir(self.user_config_dir):
-            if path.find('json') != -1:
+            if path.find('json') and path.find('package') != -1:
                 try:
                     with open(str(Path(self.user_config_dir,path)), 'r') as load_f:
                         json_dict = json.load(load_f)
                         path = {'path': path}
                         package_id = 0  # package index in file
                         for _package in json_dict['packages']:
-                            name = {'package': package_id}
+                            package = {'package': package_id}
+                            package_name = {'package_name': _package['name']}
                             platform_id = 0 # platform index in package
                             for _platform in _package['platforms']:
                                 id = {'id': len(self.packages)}
                                 platform = {'platform': platform_id}
+                                platform_name = {'platform_name': _platform['name']}
+                                version =  {'version': _platform['version']}
                                 arch = {'arch': _platform['architecture']}
-                                package = {}
+                                packages = {}
                                 # Organize data and record
-                                package.update(id)
-                                package.update(name)
-                                package.update(platform)
-                                package.update(arch)
-                                package.update(path)
-                                self.packages.append(package)
+                                packages.update(id)
+                                packages.update(package)
+                                packages.update(package_name)
+                                packages.update(platform)
+                                packages.update(platform_name)
+                                packages.update(version)
+                                packages.update(package)
+                                packages.update(arch)
+                                packages.update(path)
+                                self.packages.append(packages)
                                 for _board in _platform['board']:
-                                    _package_id = {'package_id': package['id']}
+                                    _package_id = {'package_id': packages['id']}
                                     _board_id = {'id': len(self.boards)}
                                     _board.update(_package_id)
                                     _board.update(_board_id)
@@ -267,6 +288,23 @@ class Parser(object):
                                     _system.update({'version':  _tools['version']})
                                     dependencies.append(_system)
             return dependencies
+        except Exception as e:
+            log.error(e) 
+        
+        return None
+
+    def get_ardupycore_dir_by_package_id(self, package_id):
+
+        try:
+            _package = self.packages[package_id]
+            package_id = _package['package']
+            platform_id = _package['platform']
+            with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
+                json_dict = json.load(load_f)
+                platform = json_dict['packages'][package_id]['platforms'][platform_id]
+                archiveFile = {'package':json_dict['packages'][package_id]['name'], 'arch':platform['architecture'], 'version':platform['version'],  'url':platform['url'],'archiveFileName':platform['archiveFileName'], 'checksum':platform['checksum'], 'size':platform['size']}
+                ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+                return ardupycoredir
         except Exception as e:
             log.error(e) 
         

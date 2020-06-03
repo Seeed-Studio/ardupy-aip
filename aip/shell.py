@@ -176,16 +176,16 @@ class shellCommand(Command):
     def run(self, options, args):
         
         if len(args) >= 1:
-            board = args[0]
+            port = args[0]
         else:
-            board = None  
+            port = None  
 
         ser = SerialUtils()
         if options.port == "":
-            if board == None:
-                board, desc, hwid, isbootloader = ser.getAvailableBoard()
+            if port == None:
+                port, desc, hwid, isbootloader = ser.getAvailableBoard()
         else:
-            board = options.port
+            port = options.port
 
         format = "%(asctime)s\t%(levelname)s\t%(message)s"
 
@@ -197,17 +197,17 @@ class shellCommand(Command):
         mpfs = mpf.MpFileShell(not options.nocolor, not options.nocache, options.reset, options.nohelp)
 
         if options.open is not None:
-            if board is None:
+            if port is None:
                 if not mpfs.do_open(options.open):
                     return ERROR
         else:
             print(
                 "Positional argument ({}) takes precedence over --open.".format(
-                    board
+                    port
                 )
             )
-        if board is not None:
-            mpfs.do_open(board)
+        if port is not None:
+            mpfs.do_open(port)
 
         if options.command is not None:
             for acmd in "".join(options.command).split(";"):

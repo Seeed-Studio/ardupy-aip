@@ -30,22 +30,11 @@ from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
-from pip._internal.commands.list import tabulate
 from urllib.parse import urlparse
 from aip.utils import dealGenericOptions
+from aip.utils import output_package_listing_columns
 from aip.parser import parser
 import json
-
-from pip._internal.operations.prepare import (
-    _download_http_url,
-    unpack_url,
-)
-
-from pip._internal.utils.misc import (
-    dist_is_editable,
-    get_installed_distributions,
-    write_output,
-)
 
 import os
 import stat
@@ -69,23 +58,8 @@ class listCommand(Command):
         dealGenericOptions()
         super(listCommand, self).__init__(*args, **kw)
 
-
-    def output_package_listing_columns(self, data, header):
-        # insert the header first: we need to know the size of column names
-        if len(data) > 0:
-            data.insert(0, header)
-
-        pkg_strings, sizes = tabulate(data)
-
-        # Create and add a separator.
-        if len(data) > 0:
-            pkg_strings.insert(1, " ".join(map(lambda x: '-' * x, sizes)))
-
-        for val in pkg_strings:
-            write_output(val)
-
     def run(self, options, args):
-        header = ["Package", "Version", "Location"]
+        header = ["Library", "Version", "Location"]
         moduledir = Path(parser.user_config_dir, "modules")
         libs = []
 
@@ -101,7 +75,7 @@ class listCommand(Command):
                 pass
 
         if len(libs) >= 1:
-            self.output_package_listing_columns(libs, header)
+            output_package_listing_columns(libs, header)
         return SUCCESS
 
 

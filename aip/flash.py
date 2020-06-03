@@ -46,7 +46,7 @@ from aip.utils import SerialUtils
 import time
 
 
-class flashCommand(RequirementCommand):
+class flashCommand(Command):
     """
     flash firmware to ArduPy board.
     """
@@ -74,12 +74,6 @@ class flashCommand(RequirementCommand):
             help='flash latest version firmware')
 
         self.parser.insert_option_group(0, self.cmd_opts)
-
-        index_opts = cmdoptions.make_option_group(
-            cmdoptions.index_group,
-            self.parser,
-        )
-        self.parser.add_option_group(index_opts)
         self.serial = SerialUtils()
         self.port = ""
 

@@ -44,6 +44,7 @@ from aip.logger import log
 from aip.parser import parser
 import random
 import shutil
+import time
 import sys
 from pathlib import Path
 import re
@@ -91,6 +92,9 @@ class buildCommand(RequirementCommand):
     def doVerbose(self, info):
         if self.verbose == True:
             print(info)
+        else:
+            sys.stdout.write(".....")
+            sys.stdout.flush()
         
     
     # get arm gcc
@@ -289,6 +293,58 @@ const mp_obj_module_t mp_module_arduino = {
 
         return genhdr
 
+    def downloadAll(self,session):
+        archiveFile = parser.get_archiveFile_by_id(self.board_id)
+        downloader = Downloader(session, progress_bar="on")
+        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        if os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
+            if not os.path.exists(ardupycoredir):
+                shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package'])), onerror=readonly_handler)
+                time.sleep(1)
+                os.makedirs(ardupycoredir)
+                log.info('Downloading ' + archiveFile['archiveFileName'] + '...')
+                try:
+                    unpack_url(
+                        Link(archiveFile['url']),
+                        ardupycoredir,
+                        downloader=downloader,
+                        download_dir=None,
+                    )
+                except Exception as e:
+                    log.error(e)
+                    os.remove(ardupycoredir)
+        else:
+            os.makedirs(ardupycoredir)
+            log.info('Downloading ' + archiveFile['archiveFileName'])
+            try:
+                unpack_url(
+                    Link(archiveFile['url']),
+                    ardupycoredir,
+                    downloader=downloader,
+                    download_dir=None,
+                )
+            except Exception as e:
+                log.error(e)
+                os.remove(ardupycoredir)
+        
+        toolsDependencies = parser.get_toolsDependencies_url_by_id(self.board_id)
+        toolsdir = parser.get_tool_dir_by_id(self.board_id)
+        for tool in toolsDependencies:
+            tooldir = str(Path(toolsdir, tool['name'],  tool['version']))
+            if not os.path.exists(tooldir):
+                log.info('Downloading '+ tool['name'] + '...')
+                try:
+                    unpack_url(
+                        Link(tool['url']),
+                        tooldir,
+                        downloader=downloader,
+                        download_dir=None,
+                        )
+                except Exception as e:
+                    log.error(e)
+                    print(tooldir)
+                    os.remove(tooldir)
+
     def run(self, options, args):
 
         if options.board == "":
@@ -307,21 +363,25 @@ const mp_obj_module_t mp_module_arduino = {
         self.board_id = self.serial.getBoardIdByName(self.board)
 
         if self.board_id == -1:
-            log.error("Unable to find information about '" + self.board + "', Please refer aip core!")
+            log.error("Unable to find information about '" + self.board + "'")
             return ERROR
         
         self.verbose = options.verbose
 
         self.initBoard() 
+        seesion = self.get_default_session(options)
+        self.downloadAll(seesion)
+  
         # setup deploy dir
         deploydir = parser.get_deploy_dir_by_id(self.board_id)
-
        
         if not os.path.exists(deploydir):
             os.makedirs(deploydir)
         # create build dir, This folder will be deleted after compilation
         builddir = mktemp()
         os.makedirs(builddir)
+
+        log.info("|---------------" + " Building Firmware for "+ self.board +"---------------|")
 
         arduinodir =  parser.get_arduino_dir_by_id(self.board_id)
         arduinocoredir = str(Path(arduinodir, "cores", "arduino"))
@@ -403,7 +463,7 @@ const mp_obj_module_t mp_module_arduino = {
         
         # 14 print information
         self.sizetool_cmd = self.sizetool + " -A " + str(Path(builddir + "/Ardupy"))
-
+        print("")
         os.system(self.sizetool_cmd)
 
         # 15 print information

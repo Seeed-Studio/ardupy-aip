@@ -102,8 +102,9 @@ class boardCommand(Command):
         buf = bytearray()
 
         for i in range(0, 3):
+            i
             try:
-                com = self.serial;
+                com = self.serial
                 com.timeout = 1
                 com.writeTimeout = 1
                 com.write(b"\x03")

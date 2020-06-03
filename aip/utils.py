@@ -35,6 +35,13 @@ from functools import partial
 from aip.parser import parser
 from aip.logger import log
 from optparse import Option
+from pip._internal.commands.list import tabulate
+from pip._internal.utils.misc import (
+    dist_is_editable,
+    get_installed_distributions,
+    write_output,
+)
+
 
 board  = partial(
     Option,
@@ -87,6 +94,19 @@ def windows_full_port_name(portname):
         return portname
     else:
         return "\\\\.\\{0}".format(portname)
+
+
+
+def output_package_listing_columns(data, header):
+    # insert the header first: we need to know the size of column names
+    if len(data) > 0:
+        data.insert(0, header)
+        pkg_strings, sizes = tabulate(data)
+        # Create and add a separator.
+        if len(data) > 0:
+            pkg_strings.insert(1, " ".join(map(lambda x: '-' * x, sizes)))
+        for val in pkg_strings:
+            write_output(val)
 
 class SerialUtils(object):
     def __init__(self):
