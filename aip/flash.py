@@ -126,12 +126,14 @@ class flashCommand(RequirementCommand):
                 if stty != "echo not support":
                     os.system(stty % 1200)
                 #os.system(str(bossac)+ " --help")
-                port, desc, hwid, isbootloader = self.serial.getBootloaderBoard()
                 time.sleep(1)
+                port, desc, hwid, isbootloader = self.serial.getBootloaderBoard()
                 if isbootloader == True:
                     self.port = port
                     break
                 try_count = try_count + 1
+                if port == None:
+                    continue
                 if try_count == 5:
                     do_bossac = False
                 break
@@ -146,4 +148,11 @@ class flashCommand(RequirementCommand):
             else:
                 log.warning("Sorry, the device you should have is not plugged in.")
                 return ERROR
+        else:
+            flash_tools = parser.get_flash_tool_by_id(board_id)
+            #print(flash_tools)
+            ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
+            flash_command = parser.get_flash_command_by_id(board_id, self.port, ardupybin)
+            print(flash_tools + "/" + flash_command)
+            os.system(flash_tools + "/" + flash_command)
         return SUCCESS
