@@ -27,6 +27,7 @@ from configparser import ConfigParser
 from pathlib import Path
 import urllib.request
 import sys
+from datetime import date, datetime
 import os
 import re
 import json
@@ -64,15 +65,17 @@ class Parser(object):
         if os.path.exists(self.config_file_path):
             self.config_file = open(self.config_file_path, 'r+')
             self.cp = ConfigParser()
-            self.cp.read(self.config_file_path )
+            self.cp.read(self.config_file_path)
+            self.check_board_version()
         else:   #if first time execute aip, create defalut config file.
             self.config_file = open(self.config_file_path, 'w+')
             self.cp = ConfigParser()
             self.cp.add_section('board')
-            self.cp.set("board", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
+            self.cp.set("board", "additional_url", "http://files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
             self.cp.add_section('library')
-            self.cp.set("library", "additional_url", "http://192.168.5.153/files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
+            self.cp.set("library", "additional_url", "http://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
             self.cp.write(self.config_file)
+            self.config_file.close()
             self.update_loacl_board_json()
             #self.update_loacl_library_json()
         
@@ -82,6 +85,10 @@ class Parser(object):
         self.parser_all_json()
         self.system = get_platform()
     
+    def check_board_version(self):
+        time = self.cp.get('board', 'update time')
+        if time != str(date.today().isoformat()):
+            self.update_loacl_board_json()
 
     def get_board_additional_url(self):
         url = self.cp.get("board", "additional_url")
@@ -135,6 +142,9 @@ class Parser(object):
     
     def update_loacl_board_json(self):
         log.info("update local board json...")
+        self.config_file = open(self.config_file_path, 'r+')
+        self.cp = ConfigParser()
+        self.cp.read(self.config_file_path)
         for url in self.get_board_additional_url():
             url = url.strip()
             log.info(url)
@@ -145,6 +155,8 @@ class Parser(object):
                 log.error(e)
                 continue
             else:
+                self.cp.set("board", 'update time', str(date.today().isoformat()))
+                self.cp.write(self.config_file)
                 log.info("done!")
     
     def update_loacl_library_json(self):

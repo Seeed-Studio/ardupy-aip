@@ -95,6 +95,7 @@ class boardCommand(Command):
             default=False,
             help='Connect available boards')
         
+        
         self.parser.insert_option_group(0, self.cmd_opts)
     
     def board_halt(self):
