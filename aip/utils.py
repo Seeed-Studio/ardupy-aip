@@ -45,6 +45,14 @@ board  = partial(
     help='The name of the ArduPy board.',
 )  # type: Callable[..., Option]
 
+verbose = partial(
+    Option,
+    '-v', '--verbose',
+    dest='verbose',
+    action='count',
+    default=0,
+    help='Output compilation information'
+)  # type: Callable[..., Option]
 
 
 if os.name == 'nt':  # sys.platform == 'win32':
@@ -63,7 +71,9 @@ def readonly_handler(func, path, execinfo):
 
 def dealGenericOptions():
     cmdoptions.general_group['options'].insert(6, board)
+    cmdoptions.general_group['options'].insert(1, verbose)
     cmdoptions.general_group['options'].remove(cmdoptions.isolated_mode)
+    cmdoptions.general_group['options'].remove(cmdoptions.verbose)
     cmdoptions.general_group['options'].remove(cmdoptions.no_python_version_warning)
 
 def windows_full_port_name(portname):

@@ -293,7 +293,7 @@ class Parser(object):
         return  ardupydir
 
     def get_ardupy_board_by_id(self, board_id):
-        ardupydir = self.get_ardupy_dir_by_id(board_id);
+        ardupydir = self.get_ardupy_dir_by_id(board_id)
         architecture = self.boards[board_id]["architecture"]
         ardupy_board = str(Path(ardupydir, "boards", architecture))
         return ardupy_board
