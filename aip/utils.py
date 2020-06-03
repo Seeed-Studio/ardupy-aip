@@ -237,6 +237,14 @@ class SerialUtils(object):
                         return (b["id"])
         return ""
     
+    def getBoardIdByName(self, _name):
+
+        for b in  parser.boards:
+            if b["name"] == _name:
+                return b["id"]
+    
+        return -1
+
     #  def getFirmwareByBoard(self, Board):
     #         for b in  parser.boards:
     #         (_vid, _pid) = b["application"]

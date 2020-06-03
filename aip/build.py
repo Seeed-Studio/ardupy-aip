@@ -62,12 +62,6 @@ class buildCommand(RequirementCommand):
     def __init__(self, *args, **kw):
         dealGenericOptions()
         super(buildCommand, self).__init__(*args, **kw)        
-        self.cmd_opts.add_option(
-            '-l', '--list',
-            dest='list',
-            action='store_true',
-            default=False,
-            help='List all available boards')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -76,6 +70,7 @@ class buildCommand(RequirementCommand):
             self.parser,
         )
 
+        self.serial = SerialUtils()
         self.parser.insert_option_group(0, index_opts)
         self.srcfile = []
         self.headers = ""
@@ -85,13 +80,14 @@ class buildCommand(RequirementCommand):
         self.objcopy = ""
         self.sizetool = ""
         self.ld = ""
-        self.board_id = 1
+        self.board_id = -1
         self.gcc_cmd = ""
         self.cpp_cmd = ""
         self.objcopy_cmd = ""
         self.sizetool_cmd = ""
         self.ld_cmd = ""
     
+    # get arm gcc
     def initBoard(self):
         buildParm = parser.get_build_pram_by_id(self.board_id)
         self.gcc = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['CC']))
@@ -99,7 +95,7 @@ class buildCommand(RequirementCommand):
         self.objcopy = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['OBJCOPY']))
         self.sizetool = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['SIZETOOL']))
        
-
+    # build firmware
     def buildFirmware(self, outputdir):
         buildParm = parser.get_build_pram_by_id(self.board_id)
         product = parser.boards[self.board_id]["name"]
@@ -153,6 +149,7 @@ class buildCommand(RequirementCommand):
                 wants_files.append(i)
         return wants_files
 
+    # generated Init file
     def generatedInitfile(self, outputdir):
         init_header = """
 #include <stdint.h>
@@ -287,9 +284,32 @@ const mp_obj_module_t mp_module_arduino = {
         return genhdr
 
     def run(self, options, args):
-        self.initBoard()
+
+        if options.board == "":
+            port, desc, hwid, isbootloader = self.serial.getAvailableBoard()
+            if port != None:
+                _board = self.serial.getBoardByPort(port)
+                print(_board)
+                if _board != "":
+                    self.board = _board[0]
+            else:
+                log.warning("please plug in a ArduPy Board or specify the board to build!")
+                print("<usage>    aip build [--board=<board>] ")
+                return
+        else:
+            self.board = options.board
+
+        self.board_id = self.serial.getBoardIdByName(self.board)
+
+        if self.board_id == -1:
+            log.error("Unable to find information about '" + self.board + "', Please refer aip core!")
+            return ERROR
+
+        self.initBoard() 
         # setup deploy dir
         deploydir = parser.get_deploy_dir_by_id(self.board_id)
+
+       
         if not os.path.exists(deploydir):
             os.makedirs(deploydir)
         # create build dir, This folder will be deleted after compilation
