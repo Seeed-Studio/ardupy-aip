@@ -38,6 +38,9 @@ import importlib
 from pip._internal.utils import appdirs
 from aip.parser import parser
 
+if os.name == "nt":
+    	os.system("")
+        
 def main(args=None):
 
      # type: (Optional[List[str]]) -> int

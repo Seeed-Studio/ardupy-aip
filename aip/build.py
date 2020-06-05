@@ -440,10 +440,10 @@ const mp_obj_module_t mp_module_arduino = {
         self.generatedQstrdefs(builddir)
 
         # 9 append build temp dir
+        self.headerlist.append(str(Path(builddir)))
 
-        # 10 append build temp dir
+        # 10 inform headers headerlist
         self.headers = "-I" + " -I".join(self.headerlist)
-        self.headerlist.append(str(Path(builddir, "genhdr")))
 
         # 11 build firmware
         self.buildFirmware(builddir)
