@@ -135,7 +135,10 @@ class flashCommand(Command):
             if do_bossac == True:
                 flash_tools = parser.get_flash_tool_by_id(board_id)
                 #print(flash_tools)
-                ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
+                if len(args) != 0:
+                    ardupybin = args[0]
+                else:
+                    ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
                 flash_command = parser.get_flash_command_by_id(board_id, self.port, ardupybin)
                 print(flash_tools + "/" + flash_command)
                 os.system(flash_tools + "/" + flash_command)
@@ -144,8 +147,11 @@ class flashCommand(Command):
                 return ERROR
         else:
             flash_tools = parser.get_flash_tool_by_id(board_id)
-            #print(flash_tools)
-            ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
+            ardupybin = ""
+            if len(args)!=0:
+                ardupybin = args[0]
+            else:
+                ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
             flash_command = parser.get_flash_command_by_id(board_id, self.port, ardupybin)
             print(flash_tools + "/" + flash_command)
             os.system(flash_tools + "/" + flash_command)
