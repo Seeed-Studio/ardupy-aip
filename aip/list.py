@@ -30,24 +30,14 @@ from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
-from pip._internal.commands.list import tabulate
 from urllib.parse import urlparse
-
-from pip._internal.operations.prepare import (
-    _download_http_url,
-    unpack_url,
-)
-
-from pip._internal.utils.misc import (
-    dist_is_editable,
-    get_installed_distributions,
-    write_output,
-)
+from aip.utils import dealGenericOptions
+from aip.utils import output_package_listing_columns
+from aip.parser import parser
+import json
 
 import os
 import stat
-from aip.variable import *
-from aip.command import *
 from aip.logger import log
 import shutil
 from pathlib import Path
@@ -65,26 +55,12 @@ class listCommand(Command):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(listCommand, self).__init__(*args, **kw)
 
-
-    def output_package_listing_columns(self, data, header):
-        # insert the header first: we need to know the size of column names
-        if len(data) > 0:
-            data.insert(0, header)
-
-        pkg_strings, sizes = tabulate(data)
-
-        # Create and add a separator.
-        if len(data) > 0:
-            pkg_strings.insert(1, " ".join(map(lambda x: '-' * x, sizes)))
-
-        for val in pkg_strings:
-            write_output(val)
-
     def run(self, options, args):
-        header = ["Package", "Version", "Location"]
-        moduledir = Path(user_config_dir, "modules")
+        header = ["Library", "Version", "Location"]
+        moduledir = Path(parser.user_config_dir, "modules")
         libs = []
 
         for library in os.listdir(moduledir):
@@ -93,11 +69,13 @@ class listCommand(Command):
                 with open(library_json_location, 'r') as package_json:
                     package_json_dict = json.load(package_json)
                     lib = [library, package_json_dict['version'], package_json_dict['repository']['url']]
+                    libs.append(lib)
             except Exception as e:
+                e
                 pass
-            libs.append(lib)
+
         if len(libs) >= 1:
-            self.output_package_listing_columns(libs, header)
+            output_package_listing_columns(libs, header)
         return SUCCESS
 
 

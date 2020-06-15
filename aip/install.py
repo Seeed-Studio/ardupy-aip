@@ -38,11 +38,12 @@ from pip._internal.operations.prepare import (
 )
 
 import os
-import stat
-from aip.variable import *
-from aip.command import *
+from aip.utils import readonly_handler
+from aip.utils import dealGenericOptions
+from aip.utils import parser
 from aip.logger import log
 import shutil
+import json
 from pathlib import Path
 
 class installCommand(RequirementCommand):
@@ -56,6 +57,7 @@ class installCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(installCommand, self).__init__(*args, **kw)
 
         self.cmd_opts.add_option(
@@ -108,7 +110,13 @@ class installCommand(RequirementCommand):
             return package_url
           
     def run(self, options, args):
-        moduledir = Path(user_config_dir, "modules")
+
+        if len(args) == 0:
+            log.warning("Please enter the url of the library!")
+            log.info('Usage:\n\r    aip install https://github.com/Seeed-Studio/seeed-ardupy-ultrasonic-sensor')
+            return ERROR
+
+        moduledir = Path(parser.user_config_dir, "modules")
         session = self.get_default_session(options)
         downloader = Downloader(session, progress_bar="on")
         for package in args:

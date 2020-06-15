@@ -30,7 +30,9 @@ from pip._internal.cli.status_codes import SUCCESS, ERROR
 from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
-
+from aip.parser import parser
+from aip.logger import log
+from aip.utils import dealGenericOptions
 
 from pip._internal.operations.prepare import (
     _download_http_url,
@@ -41,11 +43,10 @@ import sys
 from pathlib import Path
 import platform
 from aip.utils import SerialUtils
-from aip.variable import *
 import time
 
 
-class flashCommand(RequirementCommand):
+class flashCommand(Command):
     """
     flash firmware to ArduPy board.
     """
@@ -56,6 +57,7 @@ class flashCommand(RequirementCommand):
     ignore_require_venv = True
 
     def __init__(self, *args, **kw):
+        dealGenericOptions()
         super(flashCommand, self).__init__(*args, **kw)
         self.cmd_opts.add_option(
             '-p', '--port',
@@ -72,13 +74,8 @@ class flashCommand(RequirementCommand):
             help='flash latest version firmware')
 
         self.parser.insert_option_group(0, self.cmd_opts)
-
-        index_opts = cmdoptions.make_option_group(
-            cmdoptions.index_group,
-            self.parser,
-        )
-        
         self.serial = SerialUtils()
+        self.port = ""
 
     @property
     def stty(self):
@@ -103,85 +100,59 @@ class flashCommand(RequirementCommand):
 
     def run(self, options, args):
 
-        self.port = options.port
-        bossacdir = str(Path(user_config_dir +"/ardupycore/Seeeduino/tools/bossac"))
-
-        if not os.path.exists(bossacdir):
-            os.makedirs(bossacdir)
-        session = self.get_default_session(options)
-
-        if sys.platform == "linux":
-            link = Link(
-                "http://files.seeedstudio.com/arduino/tools/i686-linux-gnu/bossac-1.9.1-seeeduino-linux.tar.gz")
-        if sys.platform == "win32":
-            link = Link(
-                "http://files.seeedstudio.com/arduino/tools/i686-mingw32/bossac-1.9.1-seeeduino-windows.tar.bz2")
-        if sys.platform == "darwin":
-            link = Link(
-                "http://files.seeedstudio.com/arduino/tools/x86_64-apple-darwin/bossac-1.8-48-gb176eee-i386-apple-darwin16.1.0.tar.gz")
-
-        bossac = ""
-
-        if platform.system() == "Windows":
-            bossac = str(Path(bossacdir, "bossac.exe"))
+        if options.port == "":
+            port, desc, hwid, isbootloader = self.serial.getAvailableBoard()
+            self.port = port
         else:
-            bossac = str(Path(bossacdir, "bossac"))
-
-        if not os.path.exists(bossac):
-            downloader = Downloader(session, progress_bar="on")
-            unpack_url(
-                link,
-                bossacdir,
-                downloader=downloader,
-                download_dir=None,
-            )
-
-        try_count = 0
-        do_bossac = True
-        while True:
-            stty = self.stty
-            print(stty)
-            if stty != "echo not support":
-                os.system(stty % 1200)
-            #os.system(str(bossac)+ " --help")
-            port, desc, hwid, isbootloader = self.serial.getBootloaderBoard()
-            print(port)
-            time.sleep(1)
-            if isbootloader == True:
-                break
-            try_count = try_count + 1
-            if try_count == 5:
-                do_bossac = False
-                break
-
-        if do_bossac == True:
-            name, version, url = self.serial.getBoardByPort(port)
-            ardupybin = ""
-            if len(args) > 0:
-                ardupybin = args[0]
-                if not os.path.exists(ardupybin):
-                    log.warning('The path of firmware didn\'t exists!')
-                    return ERROR
-            elif options.origin == True:
-                firmwaredir = str(Path(user_config_dir +"/deploy/firmware/"+name.replace(' ', '_')))
-                if not os.path.exists(firmwaredir):
-                    os.makedirs(firmwaredir)
-                ardupybin = str(Path(firmwaredir, "ardupy_laster.bin"))
-                if not os.path.exists(ardupybin):
-                    downloader = Downloader(session, progress_bar="on")
-                    _download_http_url(
-                        link=Link(url),
-                        downloader=downloader,
-                        temp_dir=firmwaredir,
-                        hashes=None)
-            else:
-                ardupybin = str(Path(user_config_dir +"/deploy/Ardupy.bin"))
-
-            _flash_parm = flash_param[name.replace(' ', '_')];
-            print((str(bossac) + _flash_parm) % (port,  ardupybin))
-            os.system((str(bossac) + _flash_parm) % (port,  ardupybin))
-        else:
-            log.warning("Sorry, the device you should have is not plugged in.")
+            port = options.port
+        
+        if port == None:
+            log.error("Sorry, the device you should have is not plugged in.")
             return ERROR
+        
+        board_id = self.serial.getBoardIdByPort(self.port)
+        if parser.get_flash_isTouch_by_id(board_id):
+            try_count = 0
+            do_bossac = True
+            while True:
+                stty = self.stty
+                print(stty)
+                if stty != "echo not support":
+                    os.system(stty % 1200)
+                #os.system(str(bossac)+ " --help")
+                time.sleep(1)
+                port, desc, hwid, isbootloader = self.serial.getBootloaderBoard()
+                if isbootloader == True:
+                    self.port = port
+                    break
+                try_count = try_count + 1
+                if port == None:
+                    continue
+                if try_count == 5:
+                    do_bossac = False
+                break
 
+            if do_bossac == True:
+                flash_tools = parser.get_flash_tool_by_id(board_id)
+                #print(flash_tools)
+                if len(args) != 0:
+                    ardupybin = args[0]
+                else:
+                    ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
+                flash_command = parser.get_flash_command_by_id(board_id, self.port, ardupybin)
+                print(flash_tools + "/" + flash_command)
+                os.system(flash_tools + "/" + flash_command)
+            else:
+                log.warning("Sorry, the device you should have is not plugged in.")
+                return ERROR
+        else:
+            flash_tools = parser.get_flash_tool_by_id(board_id)
+            ardupybin = ""
+            if len(args)!=0:
+                ardupybin = args[0]
+            else:
+                ardupybin = str(Path(parser.get_deploy_dir_by_id(board_id), "Ardupy.bin"))
+            flash_command = parser.get_flash_command_by_id(board_id, self.port, ardupybin)
+            print(flash_tools + "/" + flash_command)
+            os.system(flash_tools + "/" + flash_command)
         return SUCCESS

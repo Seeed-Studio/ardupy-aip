@@ -25,8 +25,43 @@
 
 import re
 import os
+import sys
 import json
 import demjson
+import stat
+
+from pip._internal.cli import cmdoptions
+from functools import partial
+from aip.parser import parser
+from aip.logger import log
+from optparse import Option
+from pip._internal.commands.list import tabulate
+from pip._internal.utils.misc import (
+    dist_is_editable,
+    get_installed_distributions,
+    write_output,
+)
+
+
+board  = partial(
+    Option,
+    '-b', '--board',
+    dest='board',
+    action='store',
+    default="",
+    help='The name of the ArduPy board.',
+)  # type: Callable[..., Option]
+
+verbose = partial(
+    Option,
+    '-v', '--verbose',
+    dest='verbose',
+    action='count',
+    default=0,
+    help='Output compilation information'
+)  # type: Callable[..., Option]
+
+
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
@@ -34,10 +69,19 @@ elif os.name == 'posix':
 #~ elif os.name == 'java':
 else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
+    
 
-from .variable import *
+def readonly_handler(func, path, execinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 
+def dealGenericOptions():
+    cmdoptions.general_group['options'].insert(6, board)
+    cmdoptions.general_group['options'].insert(1, verbose)
+    cmdoptions.general_group['options'].remove(cmdoptions.isolated_mode)
+    cmdoptions.general_group['options'].remove(cmdoptions.verbose)
+    cmdoptions.general_group['options'].remove(cmdoptions.no_python_version_warning)
 
 def windows_full_port_name(portname):
     # Helper function to generate proper Windows COM port paths.  Apparently
@@ -51,9 +95,25 @@ def windows_full_port_name(portname):
     else:
         return "\\\\.\\{0}".format(portname)
 
+
+
+def output_package_listing_columns(data, header):
+    # insert the header first: we need to know the size of column names
+    if len(data) > 0:
+        data.insert(0, header)
+        pkg_strings, sizes = tabulate(data)
+        # Create and add a separator.
+        if len(data) > 0:
+            pkg_strings.insert(1, " ".join(map(lambda x: '-' * x, sizes)))
+        for val in pkg_strings:
+            write_output(val)
+
 class SerialUtils(object):
     def __init__(self):
         super().__init__()
+        if len(parser.boards) == 0:
+            log.error("Unable to find any ardupy boards, please refer to aip core!")
+            sys.exit(1)
         
     
     def getAllPortInfo(self):
@@ -68,12 +128,12 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
-                    (vid, pid) = b["appcation"]
+                for b in  parser.boards:
+                    (vid, pid) = b["hwids"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":False})
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["hwids"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                          list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
@@ -87,13 +147,13 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
-                    (vid, pid) = b["bootloader"] 
+                for b in  parser.boards:
+                    (vid, pid) = b["hwids"]["bootloader"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return (None,None,None,False)
+        return None, None, None, None
     
     def getAvailableBoard(self):
         for info in self.getAllPortInfo():
@@ -102,22 +162,22 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["hwids"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, False
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["hwids"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return (None,None,None,False)
+        return None, None, None, None
     
     def listBoard(self):
         list = [];
-        for b in  BOARD_IDS:
+        for b in  parser.boards:
            list.append(b["name"])
         return demjson.encode(list)
     
@@ -129,14 +189,14 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     if b["name"] != designated:
                         continue
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["hwids"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":False})
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["hwids"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         list.append({"port":port, "desc":desc, "hwid":hwid, "state":True})
@@ -151,19 +211,19 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
+                for b in  parser.boards:
                     if b["name"] != designated:
                         continue
-                    (vid, pid) = b["appcation"]
+                    (vid, pid) = b["hwids"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, False
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["hwids"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return port,desc, hwid, True
 
-        return (None,None,None,False)
+        None
         
     def isBootloaderStatus(self):
 
@@ -181,20 +241,48 @@ class SerialUtils(object):
             #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
             #print(hwid)
             if ii != -1:
-                for b in  BOARD_IDS:
-                    (vid, pid) = b["appcation"]
+                for b in  parser.boards:
+                    (vid, pid) = b["hwids"]["application"]
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         return (b["name"], b["version"], b["firmware_url"])
-                    (vid, pid) = b["bootloader"] 
+                    (vid, pid) = b["hwids"]["bootloader"] 
                     if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
                         #print(port,desc, hwid)
                         return (b["name"], b["version"], b["firmware_url"])
         return ""
     
+    def getBoardIdByPort(self, _port):
+        for info in self.getAllPortInfo():
+            port, desc, hwid = info 
+
+            if _port != port:
+                continue
+
+            ii = hwid.find("VID:PID")
+            #hwid: USB VID:PID=2886:002D SER=4D68990C5337433838202020FF123244 LOCATION=7-3.1.3:1.
+            #print(hwid)
+            if ii != -1:
+                for b in  parser.boards:
+                    (vid, pid) = b["hwids"]["application"]
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        return (b["id"])
+                    (vid, pid) = b["hwids"]["bootloader"] 
+                    if vid == hwid[ii + 8: ii + 8 + 4] and pid == hwid[ii + 8 + 5 :ii + 8 + 5 + 4 ]:
+                        #print(port,desc, hwid)
+                        return (b["id"])
+        return ""
     
+    def getBoardIdByName(self, _name):
+
+        for b in  parser.boards:
+            if b["name"] == _name:
+                return b["id"]
+    
+        return -1
+
     #  def getFirmwareByBoard(self, Board):
-    #         for b in  BOARD_IDS:
-    #         (_vid, _pid) = b["appcation"]
+    #         for b in  parser.boards:
+    #         (_vid, _pid) = b["application"]
     #         if (_vid, _pid) == (vid, pid):
     #              return (b["version"], b["Firmware_url"])
     #         (_vid, _pid) = b["bootloader"]
