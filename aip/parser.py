@@ -322,30 +322,26 @@ class Parser(object):
         
         return None
     
-    def get_ardupycore_dir_by_id(self, board_id):
+    def get_core_dir_by_id(self, board_id):
         archiveFile = self.get_archiveFile_by_id(board_id)
-        ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+        ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version'], 'core'))
         return  ardupycoredir
     
     def get_arduino_dir_by_id(self, board_id):
-        ardupycoredir = self.get_ardupycore_dir_by_id(board_id)
-        arduinocoredir = str(Path(ardupycoredir, "Arduino", "hardware", "samd"))
-        for file in os.listdir(arduinocoredir):
-            if len(file.split('.')) == 3:
-                arduinocoredir = str(Path(arduinocoredir, file))
-
+        ardupycoredir = self.get_core_dir_by_id(board_id)
+        arduinocoredir = str(Path(ardupycoredir, "Arduino"))
         return  arduinocoredir
     
 
     def get_ardupy_dir_by_id(self, board_id):
-        ardupycoredir = self.get_ardupycore_dir_by_id(board_id)
+        ardupycoredir = self.get_core_dir_by_id(board_id)
         ardupydir = str(Path(ardupycoredir, "ArduPy"))
         return  ardupydir
 
     def get_ardupy_board_by_id(self, board_id):
         ardupydir = self.get_ardupy_dir_by_id(board_id)
-        architecture = self.boards[board_id]["architecture"]
-        ardupy_board = str(Path(ardupydir, "boards", architecture))
+        board = self.boards[board_id]["name"].replace(' ', '_')
+        ardupy_board = str(Path(ardupydir, "boards", board))
         return ardupy_board
 
     
@@ -356,14 +352,14 @@ class Parser(object):
         return variantdir
     
     def get_gender_dir_by_id(self, board_id):
-        tooldir = self.get_tool_dir_by_id(board_id)
-        architecture = self.boards[board_id]["architecture"]
-        genhdrdir = str(Path(tooldir, "genhdr", architecture))
+        ardupy_board = self.get_ardupy_dir_by_id(board_id)
+        board = self.boards[board_id]["name"].replace(' ', '_')
+        genhdrdir = str(Path(ardupy_board, 'genhdr', board))
         return genhdrdir
-
+    
     def get_tool_dir_by_id(self, board_id):
-        ardupycoredir = self.get_ardupycore_dir_by_id(board_id)
-        tooldir = str(Path(ardupycoredir, 'Arduino', 'tools'))
+        archiveFile = self.get_archiveFile_by_id(board_id)
+        tooldir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version'], 'tools'))
         return tooldir
 
     def get_flash_tool_by_id(self, board_id):
@@ -373,18 +369,21 @@ class Parser(object):
             _package_id = self.boards[board_id]['package_id']
             _package = self.packages[_package_id]
             _flash = self.boards[board_id]['architecture']
+         
             package_id = _package['package']
             with open(str(Path(self.user_config_dir,_package['path'])), 'r') as load_f:
                 json_dict = json.load(load_f)
                 flashs = json_dict['packages'][package_id]['flash']
                 for flash in flashs:
+                    if(flash['name'] == _flash):
                         flash_tool_dir = str(Path(tool_dir, flash['tools'], flash['version']))
+                        break
         except Exception as e:
             log.error(e) 
-        
+        print(flash_tool_dir)
         if flash_tool_dir == "":
             log.error("Can't find flash tool, please check package_index.json!")
-        
+
         return flash_tool_dir
 
     def get_flash_command_by_id(self, board_id, port, firmware):
