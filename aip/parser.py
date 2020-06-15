@@ -32,11 +32,12 @@ import os
 import re
 import json
 import ssl
+import shutil
+import stat
 ssl._create_default_https_context = ssl._create_unverified_context
 
 from pip._internal.utils import appdirs
 from aip.logger import log
-
 
 def get_platform():
     import platform
@@ -68,12 +69,19 @@ class Parser(object):
             self.cp.read(self.config_file_path)
             self.check_board_version()
         else:   #if first time execute aip, create defalut config file.
+            if(os.path.exists(str(Path(self.user_config_dir, "ardupycore")))):
+                shutil.rmtree(str(Path(self.user_config_dir, "ardupycore")))
+
+            for path in os.listdir(self.user_config_dir):
+                if path.find('json') != -1:
+                    os.remove(str(Path(self.user_config_dir, path)))
+
             self.config_file = open(self.config_file_path, 'w+')
             self.cp = ConfigParser()
             self.cp.add_section('board')
-            self.cp.set("board", "additional_url", "http://files.seeedstudio.com/ardupy/package_seeeduino_temp_ardupy_index.json")
+            self.cp.set("board", "additional_url", "http://files.seeedstudio.com/ardupy/package_new_seeeduino_ardupy_index.json")
             self.cp.add_section('library')
-            self.cp.set("library", "additional_url", "http://files.seeedstudio.com/ardupy/package_seeeduino_ardupy_index.json")
+            self.cp.set("library", "additional_url", "")
             self.cp.write(self.config_file)
             self.config_file.close()
             self.update_loacl_board_json()
@@ -380,7 +388,7 @@ class Parser(object):
                         break
         except Exception as e:
             log.error(e) 
-        print(flash_tool_dir)
+    
         if flash_tool_dir == "":
             log.error("Can't find flash tool, please check package_index.json!")
 
