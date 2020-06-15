@@ -317,12 +317,11 @@ const mp_obj_module_t mp_module_arduino = {
         downloader = Downloader(session, progress_bar="on")
         ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore',
                                  archiveFile['package'], archiveFile['version']))
-        if os.path.exists(str(Path(parser.user_config_dir, 'ardupycore', archiveFile['package']))):
+        if os.path.exists(str(Path(ardupycoredir, 'core'))):
             if not os.path.exists(ardupycoredir):
                 shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore',
                                        archiveFile['package'])), onerror=readonly_handler)
                 time.sleep(1)
-                os.makedirs(ardupycoredir)
                 log.info('Downloading ' +
                          archiveFile['archiveFileName'] + '...')
                 try:
@@ -337,7 +336,6 @@ const mp_obj_module_t mp_module_arduino = {
                     os.remove(ardupycoredir)
                     sys.exit(1)
         else:
-            os.makedirs(ardupycoredir)
             log.info('Downloading ' + archiveFile['archiveFileName'])
             try:
                 unpack_url(
