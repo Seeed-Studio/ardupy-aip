@@ -69,6 +69,8 @@ class Parser(object):
             self.cp.read(self.config_file_path)
             self.check_board_version()
         else:   #if first time execute aip, create defalut config file.
+            if not os.path.exists(self.user_config_dir):
+                os.mkdir(self.user_config_dir)
             if(os.path.exists(str(Path(self.user_config_dir, "ardupycore")))):
                 shutil.rmtree(str(Path(self.user_config_dir, "ardupycore")))
 
