@@ -76,6 +76,7 @@ class buildCommand(RequirementCommand):
         self.srcfile = []
         self.headers = ""
         self.headerlist = []
+        self.buildParm = ""
         self.gcc = ""
         self.cpp = ""
         self.objcopy = ""
@@ -99,19 +100,21 @@ class buildCommand(RequirementCommand):
     
     # get arm gcc
     def initBoard(self):
-        buildParm = parser.get_build_pram_by_id(self.board_id)
+        self.buildParm = parser.get_build_pram_by_id(self.board_id)
+        buildParm = self.buildParm
         self.gcc = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['CC']))
         self.cpp = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['CXX']))
         self.objcopy = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['OBJCOPY']))
         self.sizetool = str(Path(parser.get_tool_dir_by_id(self.board_id), buildParm['tool'], buildParm['version'], "bin", buildParm['SIZETOOL']))
+        self.buildParm = parser.get_build_pram_by_id(self.board_id)
        
     # build firmware
     def buildFirmware(self, outputdir):
-        buildParm = parser.get_build_pram_by_id(self.board_id)
+        buildParm = self.buildParm
         product = parser.boards[self.board_id]["name"]
         pid = parser.boards[self.board_id]["hwids"]["application"][0]
         vid = parser.boards[self.board_id]["hwids"]["application"][1]
-        common_flags = " " + buildParm["CFLAGS"] + " " + parser.boards[self.board_id]["BOARDFLAGS"] + " " + buildParm["USBFLAGS"].format(product, pid, vid) + " " + buildParm["TOOLCFLAGS"].format(parser.get_tool_dir_by_id(self.board_id))
+        common_flags = " " + buildParm["CFLAGS"] + " " + parser.boards[self.board_id]["BOARDFLAGS"] + " " + buildParm["ARDUINOCFLAGS"].format(arduinocore=parser.get_arduino_dir_by_id(self.board_id)) + " " + buildParm["USBFLAGS"].format(product, pid, vid) + " " + buildParm["TOOLCFLAGS"].format(parser.get_tool_dir_by_id(self.board_id)) + " " +  buildParm["EXTRACFLAGS"]
         gcc_flags = common_flags + " " + buildParm["CCFLAGS"]
         cpp_flags = common_flags + " " + buildParm["CXXFLAGS"]
         output_str = " -o {0}   -c {1}"
@@ -120,6 +123,9 @@ class buildCommand(RequirementCommand):
         output_o = []
         # build all of source file
         for f in self.srcfile:
+            print("---------------------------")
+            print(f)
+            print("---------------------------")
             randomstr = "".join(random.sample('zyxwvutsrqponmlkjihgfedcba', 8))
             #out = randomstr + os.path.basename(f)+".o"
             out = os.path.join(outputdir, randomstr + os.path.basename(f)+".o")
@@ -135,7 +141,7 @@ class buildCommand(RequirementCommand):
                 output_o.append(out)
                 os.system(cmd)
 
-        self.ld_cmd =  self.gcc + " " +  buildParm["LINKFLAGS"].format(parser.get_ardupy_board_by_id(self.board_id), parser.get_ardupy_dir_by_id(self.board_id), " ".join(output_o), outputdir)
+        self.ld_cmd =  self.gcc + " -L{0} ".format(parser.get_ardupy_board_by_id(self.board_id)) + " " + buildParm["TOOLLDFLAGS"].format(parser.get_tool_dir_by_id(self.board_id)) + " " + buildParm["EXTRALDFLAGS"] + " " + buildParm["LINKFLAGS"].format(parser.get_ardupy_board_by_id(self.board_id), " ".join(output_o), outputdir)
         self.doVerbose(self.ld_cmd)
         os.system(self.ld_cmd)
 
@@ -161,6 +167,7 @@ class buildCommand(RequirementCommand):
 
     # generated Init file
     def generatedInitfile(self, outputdir):
+
         init_header = """
 #include <stdint.h>
 
@@ -221,11 +228,12 @@ const mp_obj_module_t mp_module_arduino = {
         shutil.copyfile(str(Path(parser.get_gender_dir_by_id(self.board_id),"mpversion.h")), str(Path(genhdr, "mpversion.h")))
         shutil.copyfile(str(Path(parser.get_gender_dir_by_id(self.board_id),"moduledefs.h")), str(Path(genhdr, "moduledefs.h")))
 
-        # {0}: ardupy  path
-        # {1}: ardupy board path
-        micropython_CFLAGS = "-I. -I{0} -I{1} -I{0}/MicroPython -Wall -Werror -Wpointer-arith -Wuninitialized -Wno-unused-label -std=gnu99 -U_FORTIFY_SOURCE -Os "
+        mp_generate_flag = " -I. -I{0} -I{1}".format(parser.get_ardupy_dir_by_id(self.board_id), parser.get_ardupy_board_by_id(self.board_id))
 
-        mp_generate_flag = micropython_CFLAGS.format(parser.get_ardupy_dir_by_id(self.board_id), parser.get_ardupy_board_by_id(self.board_id))
+        buildParm = self.buildParm
+        micropython_CFLAGS =buildParm["MICROPYTHONCFLAGS"].format(parser.get_ardupy_dir_by_id(self.board_id))
+
+        mp_generate_flag = " {} {} ".format(mp_generate_flag, micropython_CFLAGS)
        
         # remove cpp files
         # todo； only scan file start wirh "mod_ardupy_"
@@ -289,7 +297,7 @@ const mp_obj_module_t mp_module_arduino = {
         qstrdefs_generated_h.close()
 
         # os.system("cp "+ str(Path(genhdr,"qstrdefs.generated.h"))+" /tmp")
-        self.headerlist.append(str(outputdir))
+        self.headerlist.append(str(Path(genhdr)))
 
         return genhdr
 
@@ -313,6 +321,7 @@ const mp_obj_module_t mp_module_arduino = {
                 except Exception as e:
                     log.error(e)
                     os.remove(ardupycoredir)
+                    sys.exit(1)
         else:
             os.makedirs(ardupycoredir)
             log.info('Downloading ' + archiveFile['archiveFileName'])
@@ -326,6 +335,7 @@ const mp_obj_module_t mp_module_arduino = {
             except Exception as e:
                 log.error(e)
                 os.remove(ardupycoredir)
+                sys.exit(1)
         
         toolsDependencies = parser.get_toolsDependencies_url_by_id(self.board_id)
         toolsdir = parser.get_tool_dir_by_id(self.board_id)
@@ -344,6 +354,7 @@ const mp_obj_module_t mp_module_arduino = {
                     log.error(e)
                     print(tooldir)
                     os.remove(tooldir)
+                    sys.exit(1)
 
     def run(self, options, args):
 
@@ -378,7 +389,8 @@ const mp_obj_module_t mp_module_arduino = {
         if not os.path.exists(deploydir):
             os.makedirs(deploydir)
         # create build dir, This folder will be deleted after compilation
-        builddir = mktemp()
+        builddir = "C:/Users/Seeed/AppData/Local/Temp/tempxxx"
+        shutil.rmtree(builddir)
         os.makedirs(builddir)
 
         log.info("|---------------" + " Building Firmware for "+ self.board +"---------------|")
@@ -406,13 +418,13 @@ const mp_obj_module_t mp_module_arduino = {
             self.headerlist.append(library_path)
             if(os.path.exists(str(Path(library_path, "src")))):
                  self.headerlist.append(str(Path(library_path, "src")))
-        
+                 
         # 4 append Ardupy core PATH
         self.headerlist.append(parser.get_ardupy_dir_by_id(self.board_id))
         self.headerlist.append(parser.get_ardupy_board_by_id(self.board_id))
         self.headerlist.append(str(Path(parser.get_ardupy_dir_by_id(self.board_id), "MicroPython")))
+
         # 5 append moudules PATh
-        # TODO
         moduledir = str(Path(parser.user_config_dir, "modules"))
         if not os.path.exists(moduledir):
             os.makedirs(moduledir)
@@ -439,7 +451,7 @@ const mp_obj_module_t mp_module_arduino = {
         # 8 Convert to the required format for GCC
         self.generatedQstrdefs(builddir)
 
-        # 9 append build temp dir
+        #9 append build temp dir
         self.headerlist.append(str(Path(builddir)))
 
         # 10 inform headers headerlist
@@ -468,7 +480,7 @@ const mp_obj_module_t mp_module_arduino = {
 
         # 15 print information
         # delete build dir
-        shutil.rmtree(builddir)
+        #shutil.rmtree(builddir)
 
         if os.path.exists(firmware_path):
             log.info('Firmware path: '+ firmware_path)
