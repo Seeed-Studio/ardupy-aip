@@ -315,28 +315,10 @@ const mp_obj_module_t mp_module_arduino = {
     def downloadAll(self, session):
         archiveFile = parser.get_archiveFile_by_id(self.board_id)
         downloader = Downloader(session, progress_bar="on")
-        ardupycoredir = str(Path(parser.user_config_dir, 'ardupycore',
-                                 archiveFile['package'], archiveFile['version']))
-        if os.path.exists(str(Path(ardupycoredir, 'core'))):
-            if not os.path.exists(ardupycoredir):
-                shutil.rmtree(str(Path(parser.user_config_dir, 'ardupycore',
-                                       archiveFile['package'])), onerror=readonly_handler)
-                time.sleep(1)
-                log.info('Downloading ' +
-                         archiveFile['archiveFileName'] + '...')
-                try:
-                    unpack_url(
-                        Link(archiveFile['url']),
-                        ardupycoredir,
-                        downloader=downloader,
-                        download_dir=None,
-                    )
-                except Exception as e:
-                    log.error(e)
-                    os.remove(ardupycoredir)
-                    sys.exit(1)
-        else:
-            log.info('Downloading ' + archiveFile['archiveFileName'])
+        ardupycoredir = parser.get_core_dir_by_id(self.board_id)
+        if not os.path.exists(ardupycoredir):
+            log.info('Downloading ' +
+                        archiveFile['archiveFileName'] + '...')
             try:
                 unpack_url(
                     Link(archiveFile['url']),
@@ -344,6 +326,10 @@ const mp_obj_module_t mp_module_arduino = {
                     downloader=downloader,
                     download_dir=None,
                 )
+            except Exception as e:
+                    log.error(e)
+                    os.remove(ardupycoredir)
+                    sys.exit(1)
             except Exception as e:
                 log.error(e)
                 os.remove(ardupycoredir)
