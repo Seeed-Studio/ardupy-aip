@@ -15,7 +15,7 @@ install:
 
 script: 
   - aip help
-  - aip build --board=XIAO
+  - aip build --board=xiao
   
 notifications:
   webhooks:
