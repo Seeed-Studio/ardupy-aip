@@ -325,7 +325,7 @@ class Parser(object):
                 json_dict = json.load(load_f)
                 platform = json_dict['packages'][package_id]['platforms'][platform_id]
                 archiveFile = {'package':json_dict['packages'][package_id]['name'], 'arch':platform['architecture'], 'version':platform['version'],  'url':platform['url'],'archiveFileName':platform['archiveFileName'], 'checksum':platform['checksum'], 'size':platform['size']}
-                ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version']))
+                ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], 'hardware', archiveFile['arch'], archiveFile['version']))
                 return ardupycoredir
         except Exception as e:
             log.error(e) 
@@ -334,7 +334,7 @@ class Parser(object):
     
     def get_core_dir_by_id(self, board_id):
         archiveFile = self.get_archiveFile_by_id(board_id)
-        ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version'], 'core'))
+        ardupycoredir =  ardupycoredir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], 'hardware', archiveFile['arch'], archiveFile['version'], 'core'))
         return  ardupycoredir
     
     def get_arduino_dir_by_id(self, board_id):
@@ -369,7 +369,7 @@ class Parser(object):
     
     def get_tool_dir_by_id(self, board_id):
         archiveFile = self.get_archiveFile_by_id(board_id)
-        tooldir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], archiveFile['version'], 'tools'))
+        tooldir = str(Path(self.user_config_dir, 'ardupycore', archiveFile['package'], 'tools'))
         return tooldir
 
     def get_flash_tool_by_id(self, board_id):
