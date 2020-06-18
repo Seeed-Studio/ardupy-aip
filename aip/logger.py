@@ -28,6 +28,9 @@ import os.path
 import time
 from colorama import Fore, Style
 import sys
+import os
+if os.name == "nt":
+    os.system("")
  
  
 class Logger(object):
@@ -35,7 +38,6 @@ class Logger(object):
         self.logger = logging.getLogger(name=logger)
         self.logger.setLevel(logging.DEBUG)  # critical > error > warning > info > debug
 
- 
     def debug(self, msg):
         print(Fore.WHITE + str(msg) + Style.RESET_ALL)
  
