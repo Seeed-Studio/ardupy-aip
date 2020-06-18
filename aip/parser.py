@@ -410,6 +410,8 @@ class Parser(object):
                     if(flash['name'] == _flash):
                         if self.system == "i686-mingw32":
                             tool = flash['tools']+'.exe'
+                        else: 
+                            tool = flash['tools']
                         flash_command = tool + flash['command']
                         flash_command = flash_command.format(str(port), str(firmware))
         except Exception as e:
