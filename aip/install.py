@@ -181,6 +181,7 @@ class installCommand(RequirementCommand):
                 if os.path.exists(package_location):    # remove the old package
                     shutil.rmtree(package_location, onerror=readonly_handler)
                 return ERROR
+            return SUCCESS
 
 
 
