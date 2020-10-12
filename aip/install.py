@@ -31,6 +31,7 @@ from pip._internal.cli import cmdoptions
 from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
 from urllib.parse import urlparse
+import requests
 
 from pip._internal.operations.prepare import (
     _download_http_url,
@@ -104,7 +105,13 @@ class installCommand(RequirementCommand):
             if "/archive/" in package_parse.path and '.zip' in package_parse.path:  
                 path = package_parse.path   # get the path
             else:
-                path = package_parse.path + '/archive/master.zip'
+                branch = scheme + '://' + netloc + '/' + package_parse.path + '/tree/' + 'master'
+                re =  requests.head(branch)
+                if re.status_code != 404:
+                    path = package_parse.path + '/archive/master.zip'
+                else:
+                    path = package_parse.path + '/archive/main.zip'
+                
 
             package_url = scheme + '://' + netloc + '/' + path  # form path
             return package_url
@@ -120,7 +127,9 @@ class installCommand(RequirementCommand):
         session = self.get_default_session(options)
         downloader = Downloader(session, progress_bar="on")
         for package in args:
+
             package_url = self.get_archive_url(options, package)
+
             package_location = package_url[:package_url.find('/archive')]
             package_location = package_location.split('/')[len(package_location.split('/'))-1]
             package_location = str(Path(moduledir, package_location))   # form location
