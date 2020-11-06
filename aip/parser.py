@@ -54,7 +54,7 @@ def get_platform():
             _os = 'i686-pc-linux-gnu'
         elif _platform.find('aarch64') >= 0: 
             _os = 'aarch64-linux-gnu'
-    elif _platform.find('Darwin') >= 0:
+    elif _platform.find('Darwin') >= 0 or _platform.find('macOS') >= 0:
             _os = 'x86_64-apple-darwin'
     
     return _os
