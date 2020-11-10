@@ -81,6 +81,13 @@ class installCommand(RequirementCommand):
             action='store_true',
             default=False,
             help='Force download the library.')
+        
+        self.cmd_opts.add_option(
+            '-l', '--local',
+            dest='local',
+            action='store_true',
+            default=False,
+            help='Use local library directory.')
 
         self.parser.insert_option_group(0, self.cmd_opts)
 
@@ -127,11 +134,12 @@ class installCommand(RequirementCommand):
         session = self.get_default_session(options)
         downloader = Downloader(session, progress_bar="on")
         for package in args:
-
-            package_url = self.get_archive_url(options, package)
-
-            package_location = package_url[:package_url.find('/archive')]
-            package_location = package_location.split('/')[len(package_location.split('/'))-1]
+            if options.local:
+                package_location = package.split('/')[len(package.split('/'))-1]
+            else:
+                package_url = self.get_archive_url(options, package)
+                package_location = package_url[:package_url.find('/archive')]
+                package_location = package_location.split('/')[len(package_location.split('/'))-1]
             package_location = str(Path(moduledir, package_location))   # form location
 
             if options.Force:
@@ -145,14 +153,18 @@ class installCommand(RequirementCommand):
                 log.info("Use aip install -F Overwrite previous Library")
                 return ERROR
 
-            log.info("Downloading library......")
             try:
-                unpack_url(
-                    Link(package_url),
-                    package_location,
-                    downloader=downloader,
-                    download_dir=None,
-                )
+                if options.local:
+                    log.info("Copying library......")
+                    shutil.copytree(package,package_location,dirs_exist_ok=True)
+                else:
+                    log.info("Downloading library......")
+                    unpack_url(
+                        Link(package_url),
+                        package_location,
+                        downloader=downloader,
+                        download_dir=None,
+                    )
             except Exception as error:
                 log.error(error)
                 if os.path.exists(package_location):    # remove the old package
