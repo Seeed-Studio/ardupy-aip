@@ -3,4 +3,5 @@ pyserial
 demjson
 colorama
 ardupy-mpfshell
+requests
 pip >= 20.1
