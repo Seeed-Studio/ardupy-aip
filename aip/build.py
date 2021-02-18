@@ -32,7 +32,6 @@ from pip._internal.models.link import Link
 import shutil
 
 from pip._internal.operations.prepare import (
-    _download_http_url,
     unpack_url,
 )
 import os
@@ -323,7 +322,7 @@ const mp_obj_module_t mp_module_arduino = {
                 unpack_url(
                     Link(archiveFile['url']),
                     ardupycoredir,
-                    downloader=downloader,
+                    download=downloader,
                     download_dir=None,
                 )
             except Exception as e:
@@ -347,7 +346,7 @@ const mp_obj_module_t mp_module_arduino = {
                     unpack_url(
                         Link(tool['url']),
                         tooldir,
-                        downloader=downloader,
+                        download=downloader,
                         download_dir=None,
                     )
                 except Exception as e:

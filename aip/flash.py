@@ -35,7 +35,6 @@ from aip.logger import log
 from aip.utils import dealGenericOptions
 
 from pip._internal.operations.prepare import (
-    _download_http_url,
     unpack_url,
 )
 import os

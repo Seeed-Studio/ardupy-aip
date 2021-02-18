@@ -34,7 +34,6 @@ from urllib.parse import urlparse
 import requests
 
 from pip._internal.operations.prepare import (
-    _download_http_url,
     unpack_url,
 )
 
@@ -162,7 +161,7 @@ class installCommand(RequirementCommand):
                     unpack_url(
                         Link(package_url),
                         package_location,
-                        downloader=downloader,
+                        download=downloader,
                         download_dir=None,
                     )
             except Exception as error:
@@ -188,7 +187,7 @@ class installCommand(RequirementCommand):
                             unpack_url(
                                 Link(dependency_url),
                                 dependency_location,
-                                downloader=downloader,
+                                download=downloader,
                                 download_dir=None,
                             )
                         except Exception as error:
