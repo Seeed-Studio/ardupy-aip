@@ -32,7 +32,6 @@ from pip._internal.models.link import Link
 import shutil
 
 from pip._internal.operations.prepare import (
-    _download_http_url,
     unpack_url,
 )
 import os
@@ -70,7 +69,6 @@ class buildCommand(RequirementCommand):
             cmdoptions.index_group,
             self.parser,
         )
-
         self.serial = SerialUtils()
         self.parser.insert_option_group(0, index_opts)
         self.srcfile = []
@@ -323,7 +321,7 @@ const mp_obj_module_t mp_module_arduino = {
                 unpack_url(
                     Link(archiveFile['url']),
                     ardupycoredir,
-                    downloader=downloader,
+                    downloader,
                     download_dir=None,
                 )
             except Exception as e:
@@ -347,7 +345,7 @@ const mp_obj_module_t mp_module_arduino = {
                     unpack_url(
                         Link(tool['url']),
                         tooldir,
-                        downloader=downloader,
+                        downloader,
                         download_dir=None,
                     )
                 except Exception as e:
