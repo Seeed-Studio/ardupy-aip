@@ -55,7 +55,6 @@ from pip._internal.network.download import Downloader
 from pip._internal.models.link import Link
 
 from pip._internal.operations.prepare import (
-    _download_http_url,
     unpack_url,
 )
 

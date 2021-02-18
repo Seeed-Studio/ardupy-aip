@@ -33,7 +33,6 @@ from pip._internal.models.link import Link
 from urllib.parse import urlparse
 
 from pip._internal.operations.prepare import (
-    _download_http_url,
     unpack_url,
 )
 
