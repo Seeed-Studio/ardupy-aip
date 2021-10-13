@@ -36,11 +36,7 @@ from aip.parser import parser
 from aip.logger import log
 from optparse import Option
 from pip._internal.commands.list import tabulate
-from pip._internal.utils.misc import (
-    dist_is_editable,
-    get_installed_distributions,
-    write_output,
-)
+from pip._internal.utils.misc import write_output
 
 
 board  = partial(
